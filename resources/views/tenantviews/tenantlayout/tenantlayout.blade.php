@@ -28,8 +28,7 @@
     <div class="container-fluid">
       <!-- Logo -->
       <a class="navbar-brand" href="#">
-        <img id="navbarLogo" src="Tenant/resource/logo-main.png" alt="Logo" width="200" height="30" class="d-inline-block align-text-top">
-        {{ $tenantName }} Dashboard
+      <img id="navbarLogo" src="Tenant/resource/logo-main.png" alt="Logo" width="250" height="50" class="d-inline-block align-text-top">        {{ $tenantName }} Dashboard
       </a>
   
       <!-- Toggler button -->
@@ -62,7 +61,7 @@
       <aside class="col-md-2 sidebar">
         <div class="list-group">
           <a href="tenantdashboard" class="list-group-item list-group-item-action text-white">Dashboard</a>
-          <a href="tenantbhlist" class="list-group-item list-group-item-action text-white">Boarding Houses</a>
+          <a href="tenantbhlist" class="list-group-item list-group-item-action text-white">Manage Menu</a>
           <!-- Subscription details -->
            <hr class="list-group-divider text-white"><span class="text-white fas fa-lightbulb">   Subscription</span></hr>
           <div class="list-group-item text-white" id="subscriptionDetails">

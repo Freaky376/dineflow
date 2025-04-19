@@ -97,15 +97,15 @@
             // Set description and monthly price based on selected plan type
             switch (subscriptionPlan) {
                 case 'Basic Plan':
-                    description = 'Manage up to 10 boarding houses';
+                    description = 'Manage up to 10  items';
                     monthlyPrice = '$19.99';
                     break;
                 case 'Standard Plan':
-                    description = 'Manage up to 50 boarding houses';
+                    description = 'Manage up to 50 items';
                     monthlyPrice = '$49.99';
                     break;
                 case 'Premium Plan':
-                    description = 'Manage unlimited boarding houses';
+                    description = 'Manage unlimited items';
                     monthlyPrice = '$99.99';
                     break;
                 default:

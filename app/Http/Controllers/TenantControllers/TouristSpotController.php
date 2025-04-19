@@ -10,38 +10,42 @@ use Illuminate\Support\Facades\Log;
 class TouristSpotController extends Controller
 {
     public function store(Request $request)
-{
-    $data = $request->validate([
-        'name' => 'required|string',
-        'location' => 'required|string',
-        'description' => 'nullable|string',
-        'category' => 'nullable|string',
-        'opening_hours' => 'nullable|string',
-        'entry_fee' => 'nullable|string',
-        'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg,JPEG,PNG,JPG,GIF,SVG|max:2048'
-    ]);
+    {
+        try {
+            $data = $request->validate([
+                'name' => 'required|string',
+                'location' => 'required|string',
+                'description' => 'nullable|string',
+                'category' => 'nullable|string',
+                'opening_hours' => 'nullable|string',
+                'entry_fee' => 'nullable|string',
+                'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg,JPEG,PNG,JPG,GIF,SVG|max:2048'
+            ]);
 
-    if ($request->hasFile('image')) {
-        $data['image'] = $this->storeImage($request);
+            if ($request->hasFile('image')) {
+                $data['image'] = $this->storeImage($request);
+                if (!$data['image']) {
+                    return redirect()->back()->with('error', 'Failed to upload image.')->withInput();
+                }
+            }
+
+            TouristSpot::create($data);
+
+            return redirect()->back()->with('success', 'Item added successfully!');
+        } catch (\Exception $e) {
+            Log::error('Error storing tourist spot: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Failed to add Item. Please try again.')->withInput();
+        }
     }
-
-    TouristSpot::create($data);
-
-    return redirect()->back()->with('success', 'Tourist spot added successfully!');
-}
-
 
     public function index(Request $request)
     {
         try {
-            // Initialize tenancy to get the current tenant
             $tenant = tenancy()->tenant;
             $tenantName = $tenant->tenant_city; 
 
-            // Get search input
             $search = $request->input('search');
 
-            // Fetch tourist spots based on search criteria
             $touristSpots = TouristSpot::when($search, function ($query) use ($search) {
                 $query->where('name', 'LIKE', "%{$search}%")
                     ->orWhere('location', 'LIKE', "%{$search}%")
@@ -51,40 +55,50 @@ class TouristSpotController extends Controller
                     ->orWhere('entry_fee', 'LIKE', "%{$search}%");
             })->get();
 
-            // Pass the tenant name and tourist spots to the view
             return view('tenantviews.tenantdash.tenanttourlist', compact('touristSpots', 'tenantName'));
         } catch (\Exception $e) {
-            // Log the error
-            Log::error('Error: ' . $e->getMessage());
-
-            return redirect()->back()->with('error', 'Unable to load tourist spots.');
+            Log::error('Error fetching tourist spots: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Unable to load Item. Please try again later.');
         }
     }
 
     public function edit(TouristSpot $touristSpot)
     {
-        return view('tenantviews.tenantdash.edittouristspot', compact('touristSpot'));
+        try {
+            return view('tenantviews.tenantdash.edittouristspot', compact('touristSpot'));
+        } catch (\Exception $e) {
+            Log::error('Error loading edit form: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Unable to load the edit form.');
+        }
     }
 
     public function update(Request $request, TouristSpot $touristSpot)
     {
-        $data = $request->validate([
-            'name' => 'required|string',
-            'location' => 'required|string',
-            'description' => 'nullable|string',
-            'category' => 'nullable|string',
-            'opening_hours' => 'nullable|string',
-            'entry_fee' => 'nullable|numeric',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048'
-        ]);
+        try {
+            $data = $request->validate([
+                'name' => 'required|string',
+                'location' => 'required|string',
+                'description' => 'nullable|string',
+                'category' => 'nullable|string',
+                'opening_hours' => 'nullable|string',
+                'entry_fee' => 'nullable|numeric',
+                'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048'
+            ]);
 
-        if ($request->hasFile('image')) {
-            $data['image'] = $this->storeImage($request);
+            if ($request->hasFile('image')) {
+                $data['image'] = $this->storeImage($request);
+                if (!$data['image']) {
+                    return redirect()->back()->with('error', 'Failed to upload image.')->withInput();
+                }
+            }
+
+            $touristSpot->update($data);
+
+            return redirect()->route('tenantlist')->with('success', 'Item updated successfully!');
+        } catch (\Exception $e) {
+            Log::error('Error updating tourist spot: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Failed to update Item . Please try again.')->withInput();
         }
-
-        $touristSpot->update($data);
-
-        return redirect()->route('tenantlist')->with('success', 'Tourist spot updated successfully!');
     }
 
     public function destroy($id)
@@ -95,17 +109,23 @@ class TouristSpotController extends Controller
 
             return redirect()->back()->with('success', 'Tourist spot deleted successfully!');
         } catch (\Exception $e) {
-            return redirect()->back()->with('error', 'An error occurred while deleting the tourist spot.');
+            Log::error('Error deleting tourist spot: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'An error occurred while deleting the tourist spot. Please try again.');
         }
     }
 
     public function show($id)
     {
-        $touristSpot = TouristSpot::findOrFail($id);
-        return response()->json($touristSpot);
+        try {
+            $touristSpot = TouristSpot::findOrFail($id);
+            return response()->json($touristSpot);
+        } catch (\Exception $e) {
+            Log::error('Error fetching tourist spot details: ' . $e->getMessage());
+            return response()->json(['error' => 'Item not found'], 404);
+        }
     }
 
-    private function storeImage(Request $request): string
+    private function storeImage(Request $request): ?string
     {
         try {
             $image = $request->file('image');
@@ -116,10 +136,7 @@ class TouristSpotController extends Controller
 
             return $filename;
         } catch (\Exception $e) {
-            // Log the error
             Log::error('Image upload failed: ' . $e->getMessage());
-
-            // Return null or throw an exception depending on how you want to handle errors
             return null;
         }
     }

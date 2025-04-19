@@ -10,7 +10,7 @@
             <div class="card-body">
                 <h5 class="card-title">Welcome!</h5>
                 <p class="card-text">This is your dashboard {{ $tenantName }}.</p>
-                <p class="card-text">You can manage users, boarding houses, and more from here.</p>
+                <p class="card-text">Easily manage users, your café's menu, and more.</p>
             </div>
         </div>
     </div>

@@ -61,41 +61,40 @@
 <section class="page-section attraction-section" id="home">
     <div class="container">
         <div class="text-center mb-5">
-            <h2 class="section-heading text-uppercase">Boarding Houses in {{ $tenantName }}</h2>
+            <h2 class="section-heading text-uppercase">Cafe Menu in {{ $tenantName }}</h2>
             <h6 class="text-muted">
-                Explore the diverse range of boarding houses in {{ $tenantName }}, where each location offers a unique blend of comfort and convenience. 
-                Whether you're looking for a cozy room in a bustling neighborhood or a serene retreat away from the city center, 
-                discover the perfect boarding house that matches your needs and lifestyle.
+                Explore the delightful menu of DineFlow Café in {{ $tenantName }}, where every dish is crafted to offer a unique blend of flavor and comfort.
+                Whether you're craving a quick bite in a lively setting or a relaxing sip in a cozy corner,
+                discover the perfect café experience that suits your taste and mood.
             </h6>
         </div>
 
         <div class="row">
             @foreach($touristSpots as $touristSpot)
-                <div class="col-lg-4 col-md-6 mb-4">
-                    <div class="card attraction-card">
-                        <img src="/storage/visitor/image/{{ $touristSpot->image }}" class="card-img-top attraction-image" alt="{{ $touristSpot->name }}">
-                        <div class="card-body attraction-card-body">
-                            <h3 class="card-title text-center">{{ $touristSpot->name }}</h3>
-                            <p class="card-text text-center">
-                                <i class="fas fa-map-marker-alt icon"></i>
-                                <span class="location">{{ $touristSpot->location }}</span>
-                            </p>
-                            <p class="card-text">Description: {{ $touristSpot->description }}</p>
-                            <p class="card-text">
-                                <i class="fas fa-clock icon"></i>
-                                <span>Curfew Hours: {{ $touristSpot->opening_hours }}</span>
-                            </p>
-                            <p class="card-text">
-                                <i class="fas fa-tag icon"></i>
-                                <span>Category: {{ $touristSpot->category }}</span>
-                            </p>
-                            <p class="card-text">
-                                <i class="fas fa-money-bill-alt icon"></i>
-                                <span class="price">Monthly Rent: ₱{{ $touristSpot->entry_fee }}</span>
-                            </p>
-                        </div>
+            <div class="col-lg-4 col-md-6 mb-4">
+                <div class="card attraction-card">
+                    <img src="/storage/visitor/image/{{ $touristSpot->image }}" class="card-img-top attraction-image" alt="{{ $touristSpot->name }}">
+                    <div class="card-body attraction-card-body">
+                        <h3 class="card-title text-center">{{ $touristSpot->name }}</h3>
+                        <p class="card-text text-center">
+                            <i class="fas fa-map-marker-alt icon"></i>
+                            <span class="location">{{ $touristSpot->location }}</span>
+                        </p>
+                        <p style="text-align: center;" class="card-text">Description: {{ $touristSpot->description }}</p>                        <!-- <p class="card-text">
+                            <i class="fas fa-clock icon"></i>
+                            <span>Curfew Hours: {{ $touristSpot->opening_hours }}</span>
+                        </p>
+                        <p class="card-text">
+                            <i class="fas fa-tag icon"></i>
+                            <span>Category: {{ $touristSpot->category }}</span>
+                        </p> -->
+                        <p class="card-text" style="text-align: center;">
+                            <i class="fas fa-money-bill-alt icon"></i>
+                            <span class="price">Price: ₱{{ $touristSpot->entry_fee }}</span>
+                        </p>
                     </div>
                 </div>
+            </div>
             @endforeach
         </div>
     </div>

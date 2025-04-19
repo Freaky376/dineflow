@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BH Finder</title>
+    <title>Dineflow</title>
     
     <!-- Fonts and icons -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -50,9 +50,9 @@
     <!-- Masthead -->
     <header class="masthead text-center">
         <div class="container">
-            <div class="masthead-subheading">Welcome to BH Finder!</div>
+            <div class="masthead-subheading">Welcome to DineFlow!</div>
             <div class="masthead-heading text-uppercase">{{ $tenantName }}</div>
-            <a class="btn btn-primary btn-xl text-uppercase" href="#home">Explore Boarding House's That Fit To Your Budget!</a>
+            <a class="btn btn-primary btn-xl text-uppercase" href="#home">Explore Our Cafe's Menu That Fit To Your Budget!</a>
         </div>
     </header>
 

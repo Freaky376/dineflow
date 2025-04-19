@@ -34,7 +34,7 @@ class TinkerController extends Controller
             $tenantCity = $request->input('tenant_city');
             $tenantId = '_' . $tenantCity;
             $domainName = $request->input('domain');
-            $domain = $domainName . '.bhfinder.localhost';
+            $domain = $domainName . '.dineflow.localhost';
 
             // Log domain creation for debugging
             Log::info('Creating domain: ' . $domain);
@@ -68,15 +68,15 @@ class TinkerController extends Controller
             // Set description and monthly price based on the selected plan type
             switch ($subscription->plan_type) {
                 case 'Basic Plan':
-                    $subscription->description = 'Manage up to 10 attractions';
+                    $subscription->description = 'Manage up to 10 item';
                     $subscription->monthly_price = 19.99;
                     break;
                 case 'Standard Plan':
-                    $subscription->description = 'Manage up to 50 attractions';
+                    $subscription->description = 'Manage up to 50 item';
                     $subscription->monthly_price = 49.99;
                     break;
                 case 'Premium Plan':
-                    $subscription->description = 'Manage unlimited attractions';
+                    $subscription->description = 'Manage unlimited item';
                     $subscription->monthly_price = 99.99;
                     break;
                 default:

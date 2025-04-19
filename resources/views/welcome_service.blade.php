@@ -2,11 +2,11 @@
 <section class="page-section" id="services">
     <div class="container">
         <div class="text-center">
-            <h2 class="section-heading text-uppercase">BH Finder Services</h2>
-            <h3 class="section-subheading text-muted">Making Boarding House Hunting Easy</h3>
+            <h2 class="section-heading text-uppercase">Dineflow Services</h2>
+            <h3 class="section-subheading text-muted">Fresh Every Flavor, Fresh Every Sip</h3>
             <!-- Add a new description about the service -->
             <p class="text-muted">
-                BH Finder provides a comprehensive platform for finding and managing boarding houses. Whether you're a tenant looking for the perfect place to stay or a landlord managing multiple properties, BH Finder offers the tools you need to simplify the process.
+                Dineflow provides a comprehensive platform for finding and managing cafe's. Whether you're a tenant looking for the perfect place to stay or a the one managing multiple cafe's, Dineflow offers the tools you need to simplify the process.
             </p>
         </div>
         <div class="row text-center">
@@ -19,7 +19,7 @@
                     <div class="card-body">
                         <h5>$19.99/month</h5>
                         <ul class="list-unstyled">
-                            <li>List up to 10 boarding houses</li>
+                            <li>List up to 10  items</li>
                         </ul>
                         <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#basicPlanModal">
                             Subscribe
@@ -37,7 +37,7 @@
                     <div class="card-body">
                         <h5>$49.99/month</h5>
                         <ul class="list-unstyled">
-                            <li>List up to 50 boarding houses</li>
+                            <li>List up to 50 items</li>
                         </ul>
                         <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#standardPlanModal">
                             Subscribe
@@ -55,7 +55,7 @@
                     <div class="card-body">
                         <h5>$99.99/month</h5>
                         <ul class="list-unstyled">
-                            <li>List unlimited boarding houses</li>
+                            <li>List up unlimited  items</li>
                         </ul>
                         <button type="button" class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#premiumPlanModal">
                             Subscribe

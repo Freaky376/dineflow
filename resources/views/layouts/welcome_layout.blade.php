@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BH Finder</title>
+    <title>dineflow</title>
     
     <!-- Fonts and icons -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -33,7 +33,7 @@
     <!-- Navigation -->
     <nav class="navbar navbar-expand-lg navbar-dark bg-yellow fixed-top" id="mainNav">
     <div class="container">
-            <a class="navbar-brand" href="#page-top">
+            <a class="navbar-brand" width="100" height="100" href="#page-top">
                 <img src="{{ asset('assets/logo-main.png') }}" alt="Logo">
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation">
@@ -54,8 +54,8 @@
     <!-- Masthead -->
     <header class="masthead text-center">
         <div class="container">
-            <div class="masthead-subheading">Welcome to BH Finder!</div>
-            <div class="masthead-heading text-uppercase">Making Boarding House Hunting Easy</div>
+            <div class="masthead-subheading">Welcome to DineFlow!</div>
+            <div class="masthead-heading text-uppercase">Making Cafe Hunting Easy</div>
             <a class="btn btn-primary btn-xl text-uppercase" href="#services">Explore Services</a>
         </div>
     </header>
