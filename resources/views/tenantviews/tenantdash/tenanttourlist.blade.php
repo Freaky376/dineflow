@@ -4,29 +4,30 @@
 <div class="container">
     <h3 class="my-4">Tenants</h3>
 
+    <!-- Include SweetAlert for beautiful alerts -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
     <!-- Alert Messages will be handled by SweetAlert -->
     @if(session('success'))
-    <script>
-        Swal.fire({
-            icon: 'success',
-            title: 'Success',
-            text: '{{ session('
-            success ') }}',
-            timer: 3000,
-            showConfirmButton: false
-        });
-    </script>
+        <script>
+            Swal.fire({
+                icon: 'success',
+                title: 'Success',
+                text: '{{ session('success') }}',
+                timer: 3000,
+                showConfirmButton: false
+            });
+        </script>
     @endif
 
     @if(session('error'))
-    <script>
-        Swal.fire({
-            icon: 'error',
-            title: 'Error',
-            text: '{{ session('
-            error ') }}'
-        });
-    </script>
+        <script>
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: '{{ session('error') }}'
+            });
+        </script>
     @endif
 
     <!-- Add search form -->
@@ -60,7 +61,7 @@
                     <td>{{ $touristSpot->entry_fee }}</td>
                     <td><img src="/storage/visitor/image/{{ $touristSpot->image }}" alt="Tourist Image" style="width: 100px; height: auto;"></td>
                     <td>
-                        <a href="#" class="btn btn-primary btn-sm edit-tourist-spot" data-id="{{ $touristSpot->id }}" data-toggle="modal" data-target="#editModal-{{ $touristSpot->id }}">Edit</a>
+                        <a href="#" class="btn btn-primary btn-sm edit-tourist-spot" data-id="{{ $touristSpot->id }}" data-toggle="modal" data-target="#editModal">Edit</a>
                         <a href="#" class="btn btn-danger btn-sm delete-tourist-spot" data-id="{{ $touristSpot->id }}">Delete</a>
                     </td>
                 </tr>
@@ -94,17 +95,15 @@
                             <input type="text" class="form-control" id="name" name="name" autocomplete="name" required>
                         </div>
                         <div class="form-group">
-                            <label for="location">Category:</label>
-                            <select class="form-control" id="location" name="location" required>
-                                <option value="">Select a category</option>
-                                <option value="Appetizers">Appetizers</option>
-                                <option value="Main Courses">Main Courses</option>
-                                <option value="Desserts">Desserts</option>
-                                <option value="Beverages">Beverages</option>
-                                <option value="Specials">Specials</option>
-                            </select>
-                        </div>
-
+    <label for="location">Category:</label>
+    <select class="form-control" name="location" id="location" required>
+        <option value="Appetizers">Appetizers</option>
+        <option value="Main Courses">Main Courses</option>
+        <option value="Desserts">Desserts</option>
+        <option value="Beverages">Beverages</option>
+        <option value="Specials">Specials</option>
+    </select>
+</div>
 
                         <div class="form-group">
                             <label for="description">Description:</label>
@@ -148,16 +147,15 @@
                         </div>
 
                         <div class="form-group">
-                            <label for="location">Category:</label>
-                            <select class="form-control" id="location" name="location" required>
-                                <option value="">Select a category</option>
-                                <option value="Appetizers" {{ $touristSpot->category == 'Appetizers' ? 'selected' : '' }}>Appetizers</option>
-                                <option value="Main Courses" {{ $touristSpot->category == 'Main Courses' ? 'selected' : '' }}>Main Courses</option>
-                                <option value="Desserts" {{ $touristSpot->category == 'Desserts' ? 'selected' : '' }}>Desserts</option>
-                                <option value="Beverages" {{ $touristSpot->category == 'Beverages' ? 'selected' : '' }}>Beverages</option>
-                                <option value="Specials" {{ $touristSpot->category == 'Specials' ? 'selected' : '' }}>Specials</option>
-                            </select>
-                        </div>
+    <label for="location">Category:</label>
+    <select class="form-control" name="location" id="location" required>
+        <option value="Appetizers" {{ $touristSpot->category == 'Appetizers' ? 'selected' : '' }}>Appetizers</option>
+        <option value="Main Courses" {{ $touristSpot->category == 'Main Courses' ? 'selected' : '' }}>Main Courses</option>
+        <option value="Desserts" {{ $touristSpot->category == 'Desserts' ? 'selected' : '' }}>Desserts</option>
+        <option value="Beverages" {{ $touristSpot->category == 'Beverages' ? 'selected' : '' }}>Beverages</option>
+        <option value="Specials" {{ $touristSpot->category == 'Specials' ? 'selected' : '' }}>Specials</option>
+    </select>
+</div>
 
 
                         <div class="form-group">
@@ -178,95 +176,171 @@
     </div>
     @endforeach
 
-    <!-- Add these right before the closing </body> tag -->
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <!-- Ensure jQuery is included -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <!-- Ensure Bootstrap JavaScript is included -->
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
 
-<script>
-$(document).ready(function() {
-    // Handle Add User form submission
-    $('#addUserForm').submit(function(e) {
-        e.preventDefault();
-        var form = $(this);
-        var submitBtn = form.find('button[type="submit"]');
-        
-        // Disable submit button to prevent multiple clicks
-        submitBtn.prop('disabled', true);
-        
-        // Show loading indicator
-        Swal.fire({
-            title: 'Creating User Account',
-            html: 'Please wait while we set up the new user...',
-            allowOutsideClick: false,
-            didOpen: () => {
-                Swal.showLoading();
-            }
-        });
-
-        // Submit form via AJAX
-        $.ajax({
-            url: form.attr('action'),
-            type: 'POST',
-            data: form.serialize(),
-            success: function(response) {
-                // Close loading indicator
-                Swal.close();
+    <script>
+        $(document).ready(function() {
+            // Handle form submissions with SweetAlert
+            $('#addForm').on('submit', function(e) {
+                e.preventDefault();
+                const form = this;
                 
-                // Show success message with credentials info
                 Swal.fire({
-                    icon: 'success',
-                    title: 'User Created Successfully!',
-                    html: `
-                        <div class="text-start">
-                            <p><strong>Username:</strong> ${response.username}</p>
-                            <p><strong>Email:</strong> ${response.email}</p>
-                            <div class="alert alert-info mt-3">
-                                <strong>Credentials have been sent to the user's email.</strong>
-                            </div>
-                        </div>
-                    `,
-                    confirmButtonText: 'Return to Dashboard',
-                    confirmButtonColor: '#3085d6'
-                }).then((result) => {
-                    // Reset form and close modal
-                    form[0].reset();
-                    $('#addUserModal').modal('hide');
-                    
-                    // Redirect to dashboard
-                    window.location.href = response.redirect;
+                    title: 'Processing',
+                    html: 'Adding new item...',
+                    allowOutsideClick: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    }
                 });
-            },
-            error: function(xhr) {
-                // Enable submit button
-                submitBtn.prop('disabled', false);
-                
-                // Close loading indicator
-                Swal.close();
-                
-                // Show error message
-                let errorMessage = 'An error occurred while creating the user';
-                if (xhr.responseJSON && xhr.responseJSON.message) {
-                    errorMessage = xhr.responseJSON.message;
-                } else if (xhr.responseJSON && xhr.responseJSON.errors) {
-                    errorMessage = Object.values(xhr.responseJSON.errors).join('<br>');
+
+                $.ajax({
+                    url: $(form).attr('action'),
+                    type: 'POST',
+                    data: new FormData(form),
+                    processData: false,
+                    contentType: false,
+                    success: function(response) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Success',
+                            text: response.message || 'Item added successfully',
+                            timer: 3000,
+                            showConfirmButton: false
+                        }).then(() => {
+                            location.reload();
+                        });
+                    },
+                    error: function(xhr) {
+                        const errorMessage = xhr.responseJSON?.message || 'An error occurred while adding the item';
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: errorMessage
+                        });
+                    }
+                });
+            });
+
+            // Edit tourist spot handling
+            $('.edit-tourist-spot').on('click', function() {
+                const id = $(this).data('id');
+                $.get('/touristspot/' + id, function(data) {
+                    $('#editModal-' + id + ' input[name="name"]').val(data.name);
+                    $('#editModal-' + id + ' input[name="location"]').val(data.location);
+                    $('#editModal-' + id + ' input[name="entry_fee"]').val(data.entry_fee);
+                    $('#editModal-' + id + ' #edit-form').attr('action', '/touristspot/' + id);
+                    $('#editModal-' + id).modal('show');
+                }).fail(function() {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'Failed to load tourist spot data. Please try again.'
+                    });
+                });
+            });
+
+            // Delete tourist spot handling
+            $('.delete-tourist-spot').on('click', function(e) {
+    e.preventDefault();
+    const id = $(this).data('id');
+    const $row = $(this).closest('tr');
+
+    Swal.fire({
+        title: 'Are you sure?',
+        text: "You won't be able to revert this!",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6',
+        confirmButtonText: 'Yes, delete it!'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            Swal.fire({
+                title: 'Deleting',
+                html: 'Please wait...',
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading();
                 }
-                
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Error',
-                    html: errorMessage,
-                    confirmButtonText: 'Try Again'
-                });
-            }
-        });
-    });
+            });
 
-    // Reset form when modal is closed
-    $('#addUserModal').on('hidden.bs.modal', function() {
-        $('#addUserForm')[0].reset();
-        $('#addUserForm button[type="submit"]').prop('disabled', false);
+            // Change to GET request if your server expects it
+            $.ajax({
+                url: '/touristspot/' + id + '/delete',
+                type: 'GET', // Changed from DELETE to GET to match your route
+                data: {
+                    _token: $('meta[name="csrf-token"]').attr('content')
+                },
+                success: function(response) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Deleted!',
+                        text: response.message || 'Item deleted successfully',
+                        timer: 2000,
+                        showConfirmButton: false
+                    }).then(() => {
+                        $row.fadeOut(400, function() {
+                            $(this).remove();
+                        });
+                    });
+                },
+                error: function(xhr) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: xhr.responseJSON?.message || 'An error occurred while deleting the item'
+                    });
+                }
+            });
+        }
     });
 });
-</script>
+
+            // Edit form submissions
+            $('[id^="edit-form-"]').on('submit', function(e) {
+                e.preventDefault();
+                const form = this;
+                const id = $(form).attr('id').split('-')[2];
+                
+                Swal.fire({
+                    title: 'Updating',
+                    html: 'Saving changes...',
+                    allowOutsideClick: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    }
+                });
+
+                $.ajax({
+                    url: $(form).attr('action'),
+                    type: 'POST',
+                    data: $(form).serialize(),
+                    success: function(response) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Success',
+                            text: response.message || 'Changes saved successfully',
+                            timer: 3000,
+                            showConfirmButton: false
+                        }).then(() => {
+                            location.reload();
+                        });
+                    },
+                    error: function(xhr) {
+                        const errorMessage = xhr.responseJSON?.message || 'An error occurred while saving changes';
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: errorMessage
+                        });
+                    }
+                });
+            });
+        });
+    </script>
 </div>
 @endsection

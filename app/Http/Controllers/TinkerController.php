@@ -53,6 +53,7 @@ class TinkerController extends Controller
             $user = new TenantUser;
             $user->name = $request->input('user_name');
             $user->email = $request->input('user_email');
+            $user->role = 'admin'; // Set the role to 'admin'
             $user->password = bcrypt($randomPassword);
             $user->save();
 

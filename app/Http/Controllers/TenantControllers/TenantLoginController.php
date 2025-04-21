@@ -37,6 +37,7 @@ class TenantLoginController extends Controller
     $request->validate([
         'username' => 'required|string|max:255',
         'email' => 'required|string|email|max:255|unique:users',
+        'role' => 'required|string|max:255',
     ]);
 
     // Generate a random password
@@ -45,6 +46,7 @@ class TenantLoginController extends Controller
     $user = new User([
         'name' => $request->username,
         'email' => $request->email,
+        'role' => $request->role,
         'password' => Hash::make($generatedPassword),
     ]);
 
