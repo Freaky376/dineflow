@@ -77,8 +77,8 @@
                     <div class="card-body attraction-card-body">
                         <h3 class="card-title text-center">{{ $touristSpot->name }}</h3>
                         <p class="card-text text-center">
-                            <i class="fas fa-map-marker-alt icon"></i>
-                            <span class="location">{{ $touristSpot->location }}</span>
+                        <i class="fas fa-tag icon"></i>
+                        <span class="location">{{ $touristSpot->location }}</span>
                         </p>
                         <p style="text-align: center;" class="card-text">Description: {{ $touristSpot->description }}</p>                        <!-- <p class="card-text">
                             <i class="fas fa-clock icon"></i>

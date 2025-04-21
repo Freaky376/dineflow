@@ -88,7 +88,7 @@
             <input type="email" class="form-control" id="basicEmail" name="email" required>
           </div>
           <div class="mb-3">
-            <label for="basicCity" class="form-label">City</label>
+            <label for="basicCity" class="form-label">Cafe</label>
             <input type="text" class="form-control" id="basicCity" name="city" required>
           </div>
           <div class="mb-3">
@@ -129,7 +129,7 @@
             <input type="email" class="form-control" id="standardEmail" name="email" required>
           </div>
           <div class="mb-3">
-            <label for="standardCity" class="form-label">City</label>
+            <label for="standardCity" class="form-label">Cafe</label>
             <input type="text" class="form-control" id="standardCity" name="city" required>
           </div>
           <div class="mb-3">
@@ -170,7 +170,7 @@
             <input type="email" class="form-control" id="premiumEmail" name="email" required>
           </div>
           <div class="mb-3">
-            <label for="premiumCity" class="form-label">City</label>
+            <label for="premiumCity" class="form-label">Cafe</label>
             <input type="text" class="form-control" id="premiumCity" name="city" required>
           </div>
           <div class="mb-3">
@@ -190,58 +190,99 @@
   </div>
 </div>
 
+<!-- Add this at the top of your file -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<!-- Services Section (keep your existing HTML) -->
+<section class="page-section" id="services">
+    <!-- Your existing services content -->
+</section>
+
+<!-- Modal Forms (keep your existing HTML) -->
+<div class="modal fade" id="basicPlanModal" tabindex="-1" aria-labelledby="basicPlanModalLabel" aria-hidden="true">
+  <!-- Your existing basic plan modal content -->
+</div>
+
+<div class="modal fade" id="standardPlanModal" tabindex="-1" aria-labelledby="standardPlanModalLabel" aria-hidden="true">
+  <!-- Your existing standard plan modal content -->
+</div>
+
+<div class="modal fade" id="premiumPlanModal" tabindex="-1" aria-labelledby="premiumPlanModalLabel" aria-hidden="true">
+  <!-- Your existing premium plan modal content -->
+</div>
+
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
 $(document).ready(function () {
-    // Handle form submission for Basic Plan
-    $("#basicPlanForm").submit(function (event) {
-        event.preventDefault(); // Prevent the default form submission
-        handleFormSubmission($(this)); // Call function to handle form submission
-    });
+    // Handle form submission for all plans
+    $("[id$='PlanForm']").submit(function (event) {
+        event.preventDefault();
+        const form = $(this);
+        const planType = form.find('input[name="plan_type"]').val();
+        const formData = form.serialize();
 
-    // Handle form submission for Standard Plan
-    $("#standardPlanForm").submit(function (event) {
-        event.preventDefault(); // Prevent the default form submission
-        handleFormSubmission($(this)); // Call function to handle form submission
-    });
+        // Show loading indicator
+        Swal.fire({
+            title: 'Processing Subscription',
+            html: 'Please wait while we set up your account...',
+            allowOutsideClick: false,
+            didOpen: () => {
+                Swal.showLoading();
+            }
+        });
 
-    // Handle form submission for Premium Plan
-    $("#premiumPlanForm").submit(function (event) {
-        event.preventDefault(); // Prevent the default form submission
-        handleFormSubmission($(this)); // Call function to handle form submission
-    });
-
-    function handleFormSubmission(form) {
-        // Get form data
-        var formData = form.serialize(); // Serialize form data
-
-        // Send form data to the server using AJAX
         $.ajax({
-            url: form.attr("action"), // URL specified in the form action attribute
+            url: form.attr("action"),
             type: "POST",
             data: formData,
             success: function (response) {
-                console.log(response); // Log the server response
-                // Add your code to handle success (e.g., show a success message)
-                alert("Potential client added to the database.");
-                // Reset the form fields
-                resetFormFields(form);
-                // Close the modal
-                form.closest('.modal').modal('hide');
-                location.reload();
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Subscription Successful!',
+                    html: `
+                        <h4>Welcome to DineFlow ${planType.charAt(0).toUpperCase() + planType.slice(1)} Plan</h4>
+                        <p>You can now start listing your cafe items.</p>
+                        <div class="alert alert-success mt-3">
+                            <strong>Next Steps:</strong>
+                            <ul class="text-start">
+                                <li>Check your email for confirmation</li>
+                                <li>Login to your dashboard</li>
+                                <li>Start adding your menu items</li>
+                            </ul>
+                        </div>
+                    `,
+                    confirmButtonText: 'Go to Dashboard',
+                    confirmButtonColor: '#3085d6',
+                    showCancelButton: true,
+                    cancelButtonText: 'Stay Here'
+                }).then((result) => {
+                    form[0].reset();
+                    form.closest('.modal').modal('hide');
+                    if (result.isConfirmed) {
+                        window.location.href = '/dashboard';
+                    }
+                });
             },
-            error: function (xhr, status, error) {
-                console.error(xhr.responseText); // Log any errors
-                // Add your code to handle errors (e.g., show an error message)
-                alert("Error: Potential client not added to the database.");
+            error: function (xhr) {
+                let errorMessage = 'An error occurred during subscription';
+                if (xhr.responseJSON && xhr.responseJSON.errors) {
+                    errorMessage = Object.values(xhr.responseJSON.errors).join('<br>');
+                } else if (xhr.responseJSON && xhr.responseJSON.message) {
+                    errorMessage = xhr.responseJSON.message;
+                }
+                
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Subscription Failed',
+                    html: errorMessage,
+                    confirmButtonText: 'Try Again'
+                });
             }
         });
-    }
-
-    function resetFormFields(form) {
-        form[0].reset(); // Reset the form fields
-    }
+    });
 });
 </script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js" integrity="sha384-w76AqPfDkMBDXo30jS1Sgez6pr3x5MlQ1ZAGC+nuZB+EYdgRZgiwxhTBTkF7CXvN" crossorigin="anonymous"></script>

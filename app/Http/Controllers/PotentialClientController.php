@@ -41,10 +41,12 @@ class PotentialClientController extends Controller
 
     public function destroy(PotentialClient $potentialClient)
     {
-        // Delete the specified potential client
         $potentialClient->delete();
-
-        // Return a success response
-        return response()->json(['message' => 'Potential client deleted successfully']);
+    
+        return response()->json([
+            'success' => true,
+            'message' => 'Potential client deleted successfully'
+        ]);
     }
+    
 }

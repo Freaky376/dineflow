@@ -8,6 +8,26 @@
             <li class="breadcrumb-item active">Tenants</li>
         </ol>
 
+        <!-- Response Modal -->
+        <div class="modal fade" id="responseModal" tabindex="-1" role="dialog">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Notification</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <div id="responseMessage"></div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Existing Tenants Table -->
         <div class="container">
             <h3 class="my-4">Tenants</h3>
@@ -16,6 +36,7 @@
                     <tr>
                         <th>Tenant</th>
                         <th>Domain Name</th>
+                        <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -29,7 +50,7 @@
             Add New Tenant
         </button>
 
-        <!-- Modal -->
+        <!-- Add Tenant Modal -->
         <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
             <div class="modal-dialog" role="document">
                 <div class="modal-content">
@@ -40,9 +61,10 @@
                         </button>
                     </div>
                     <div class="modal-body">
+                        @csrf <!-- Add CSRF token field -->
                         <div class="form-group">
-                            <label for="tenant_city">Tenant City:</label>
-                            <input type="text" class="form-control" id="tenant_city" placeholder="Enter Tenant City">
+                            <label for="tenant_city">Tenant Cafe Name:</label>
+                            <input type="text" class="form-control" id="tenant_city" placeholder="Enter Tenant Cafe Name">
                         </div>
                         <div class="form-group">
                             <label for="domain">Domain Name:</label>
@@ -76,86 +98,89 @@
             </div>
         </div>
 
-        <!-- Remove integrity and crossorigin attributes from script tags -->
+        <!-- Include SweetAlert for beautiful alerts -->
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
         <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
         <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
 
         <script>
-        function execute() {
-            const tenantCity = document.getElementById('tenant_city').value;
-            const domainName = document.getElementById('domain').value;
-            const userName = document.getElementById('user_name').value;
-            const userEmail = document.getElementById('user_email').value;
-            const subscriptionPlan = document.getElementById('subscription_plan').value;
-
-            // Retrieve CSRF token from meta tag
-            const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-
-            let description = '';
-            let monthlyPrice = '';
-
-            // Set description and monthly price based on selected plan type
-            switch (subscriptionPlan) {
-                case 'Basic Plan':
-                    description = 'Manage up to 10  items';
-                    monthlyPrice = '$19.99';
-                    break;
-                case 'Standard Plan':
-                    description = 'Manage up to 50 items';
-                    monthlyPrice = '$49.99';
-                    break;
-                case 'Premium Plan':
-                    description = 'Manage unlimited items';
-                    monthlyPrice = '$99.99';
-                    break;
-                default:
-                    // Set default description and monthly price for unknown plan types
-                    description = 'Plan details not available';
-                    monthlyPrice = 'Price not available';
+        // Set up AJAX headers with CSRF token
+        $.ajaxSetup({
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
             }
+        });
 
-            // Update the subscription details in the modal
-            const subscriptionDetailsDiv = document.getElementById('subscription_details');
-            subscriptionDetailsDiv.innerHTML = `
-                <label>Description:</label>
-                <p>${description}</p>
-                <label>Monthly Price:</label>
-                <p>${monthlyPrice}</p>
-            `;
+        function execute() {
+    const tenantCity = document.getElementById('tenant_city').value;
+    const domainName = document.getElementById('domain').value;
+    const userName = document.getElementById('user_name').value;
+    const userEmail = document.getElementById('user_email').value;
+    const subscriptionPlan = document.getElementById('subscription_plan').value;
+    const csrfToken = $('meta[name="csrf-token"]').attr('content'); // Get CSRF token
 
-            $.ajax({
-                type: 'POST',
-                url: '/execute-tinker',
-                data: {
-                    _token: token,
-                    tenant_city: tenantCity,
-                    domain: domainName,
-                    user_name: userName,
-                    user_email: userEmail,
-                    subscription_plan: subscriptionPlan 
-                },
-                success: function(response) {
-                    $('#exampleModal').modal('hide');
-                    $('#responseMessage').text(response.message);
-                    $('#responseModal').modal('show');
+    // Basic validation
+    if (!tenantCity || !domainName || !userName || !userEmail) {
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'Please fill in all required fields',
+        });
+        return;
+    }
 
-                    var autoCloseTimer = setTimeout(function() {
-                        $('#responseModal').modal('hide');
-                    }, 5000);
+    // Show loading indicator
+    Swal.fire({
+        title: 'Processing',
+        html: 'Creating tenant...',
+        allowOutsideClick: false,
+        didOpen: () => {
+            Swal.showLoading();
+        }
+    });
 
-                    $('#responseModal').on('hidden.bs.modal', function (e) {
-                        clearTimeout(autoCloseTimer);
-                    });
-
-                    setTimeout(function() {
-                        location.reload();
-                    }, 3000);
-                },
-                error: function(xhr, status, error) {
-                    console.error(xhr.responseText);
-                }
+    $.ajax({
+        type: 'POST',
+        url: '/execute-tinker',
+        data: {
+            _token: csrfToken, // Include CSRF token
+            tenant_city: tenantCity,
+            domain: domainName,
+            user_name: userName,
+            user_email: userEmail,
+            subscription_plan: subscriptionPlan 
+        },
+        success: function(response) {
+            $('#exampleModal').modal('hide');
+            
+            if (response.success) {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Success',
+                    text: response.message,
+                    timer: 3000,
+                    showConfirmButton: false
+                }).then(() => {
+                    location.reload();
+                });
+            } else {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: response.message
+                });
+            }
+        },
+        error: function(xhr) {
+            const errorMessage = xhr.responseJSON?.message || 'An error occurred while creating the tenant';
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: errorMessage
             });
         }
+    });
+}
 
         $(document).ready(function() {
             // Fetch tenants data when the page loads
@@ -170,12 +195,19 @@
                             // Populate the table with the fetched data
                             populateTable(response.data);
                         } else {
-                            // Handle error
-                            console.error('Error fetching tenants data: ' + response.message);
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Error',
+                                text: 'Failed to fetch tenants: ' + response.message
+                            });
                         }
                     },
                     error: function(xhr, status, error) {
-                        console.error('Error fetching tenants data: ' + error);
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: 'Failed to fetch tenants: ' + error
+                        });
                     }
                 });
             }
@@ -195,8 +227,10 @@
                     row.append($('<td>').html(domainNames));
                     
                     // Add delete button with data-tenant-id attribute
-                    var deleteBtn = $('<button>').text('Delete').addClass('btn btn-danger btn-sm delete-tenant')
-                                                .attr('data-tenant-id', tenant.id);
+                    var deleteBtn = $('<button>')
+                        .text('Delete')
+                        .addClass('btn btn-danger btn-sm delete-tenant')
+                        .attr('data-tenant-id', tenant.id);
                     row.append($('<td>').append(deleteBtn));
 
                     tableBody.append(row);
@@ -205,24 +239,72 @@
         });
 
         $(document).on('click', '.delete-tenant', function() {
-            var tenantId = $(this).data('tenant-id');
-        
-            if (confirm('Are you sure you want to delete this tenant?')) {
-                $.ajax({
-                    url: '/delete-tenant/' + tenantId,
-                    type: 'DELETE',
-                    success: function(response) {
-                        if (response.success) {
-                            fetchTenantsData(); // Refresh table after deletion
-                        } else {
-                            alert('Failed to delete tenant: ' + response.message);
-                        }
-                    },
-                    error: function(xhr, status, error) {
-                        console.error('Error deleting tenant: ' + error);
+    var tenantId = $(this).data('tenant-id');
+    var $button = $(this); // Store reference to the button
+    
+    Swal.fire({
+        title: 'Are you sure?',
+        text: "You won't be able to revert this!",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6',
+        confirmButtonText: 'Yes, delete it!'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            const deleteSwal = Swal.fire({
+                title: 'Deleting',
+                html: 'Please wait...',
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+
+            $.ajax({
+                url: '/delete-tenant/' + tenantId,
+                type: 'POST',
+                data: {
+                    _method: 'DELETE',
+                    _token: $('meta[name="csrf-token"]').attr('content')
+                },
+                success: function(response) {
+                    deleteSwal.close(); // Close the loading dialog
+                    
+                    if (response.success) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Deleted!',
+                            text: response.message,
+                            timer: 2000,
+                            showConfirmButton: false
+                        }).then(() => {
+                            // Remove the row from the table immediately
+                            $button.closest('tr').remove();
+                            
+                            // Optional: Refresh the entire table if needed
+                            // fetchTenantsData();
+                        });
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: response.message || 'Failed to delete tenant'
+                        });
                     }
-                });
-            }
-        });
+                },
+                error: function(xhr) {
+                    deleteSwal.close(); // Close the loading dialog
+                    const errorMessage = xhr.responseJSON?.message || 'An error occurred while deleting the tenant';
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: errorMessage
+                    });
+                }
+            });
+        }
+    });
+});
         </script>
 @endsection

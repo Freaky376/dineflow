@@ -1,6 +1,8 @@
 @extends('layouts.admin_parentLO')
 
 @section('content')
+<!-- Include SweetAlert for beautiful alerts -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <!-- Table for Potential Clients -->
 <div class="container mb-4">
@@ -10,7 +12,7 @@
             <tr>
                 <th>Name</th>
                 <th>Email</th>
-                <th>City</th>
+                <th>Cafe</th>
                 <th>Payment Method</th>
                 <th>Type of Plan</th>
                 <th>Action</th>
@@ -25,7 +27,15 @@
                 <td>{{ $client->payment_method }}</td>
                 <td>{{ $client->plan_type }}</td>
                 <td>
-                    <button class="btn btn-danger btn-sm delete-client-btn">Delete</button>
+                    <button class="btn btn-success btn-sm approve-client-btn"
+                        data-id="{{ $client->id }}"
+                        data-name="{{ $client->name }}"
+                        data-email="{{ $client->email }}"
+                        data-city="{{ $client->city }}"
+                        data-plan="{{ $client->plan_type }}">
+                        Approve
+                    </button>
+                    <button class="btn btn-danger btn-sm delete-client-btn" data-id="{{ $client->id }}">Delete</button>
                 </td>
             </tr>
             @endforeach
@@ -33,58 +43,225 @@
     </table>
 </div>
 
-<!-- Delete Confirmation Modal -->
-<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="deleteModalLabel">Delete Potential Client</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                Are you sure you want to delete this potential client?
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-danger" id="confirm-delete-btn">Delete</button>
-            </div>
-        </div>
-    </div>
-</div>
-
-
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 
-
 <script>
     $(document).ready(function() {
-        var clientId;
+      // Handle approve button click
+$(document).on('click', '.approve-client-btn', function() {
+    const clientId = $(this).data('id');
+    const clientName = $(this).data('name');
+    const clientEmail = $(this).data('email');
+    const clientCity = $(this).data('city');
+    const clientPlan = $(this).data('plan');
+    const $row = $(this).closest('tr');
 
-        // Store the client ID when the delete button is clicked
-        $(document).on('click', '.delete-client-btn', function() {
-            clientId = $(this).closest('tr').data('id');
-        });
-
-        // Handle the delete confirmation button click event
-        $(document).on('click', '#confirm-delete-btn', function() {
-            // Send a DELETE request to the server to delete the potential client
-            axios({
-                url: `/admin/potential-clients/${clientId}`,
-                method: 'delete',
-                headers: {
-                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+    // First confirmation dialog
+    Swal.fire({
+        title: 'Approve Client',
+        text: `Are you sure you want to approve ${clientName} (${clientEmail})?`,
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#28a745',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'Yes, approve!'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            // Show domain input dialog
+            Swal.fire({
+                title: 'Assign Domain',
+                html: `
+                    <p>Please enter the domain for ${clientCity}:</p>
+                    <input type="text" id="domainInput" class="swal2-input" placeholder="example.com">
+                    <p class="text-muted small mt-2">Include the full domain (e.g., mysite.example.com)</p>
+                `,
+                icon: 'info',
+                showCancelButton: true,
+                confirmButtonText: 'Assign Domain',
+                cancelButtonText: 'Cancel',
+                focusConfirm: false,
+                preConfirm: () => {
+                    const domain = Swal.getPopup().querySelector('#domainInput').value.trim();
+                    if (!domain) {
+                        Swal.showValidationMessage('Please enter a domain');
+                        return false;
+                    }
+                    // Basic domain validation
+                    if (!/^([a-z0-9]+(-[a-z0-9]+)*\.)+[a-z]{2,}$/i.test(domain)) {
+                        Swal.showValidationMessage('Please enter a valid domain');
+                        return false;
+                    }
+                    return domain;
                 }
-            })
-            .then(function(response) {
-                // Close the modal
-                $('#deleteModal').modal('hide');
-                // Reload the table to show the updated data
-                location.reload();
-            })
-            .catch(function(error) {
-                // Handle the error response
-                console.log(error.responseText);
+            }).then((domainResult) => {
+                if (domainResult.isConfirmed) {
+                    const assignedDomain = domainResult.value;
+
+                    // Show loading indicator
+                    const approveSwal = Swal.fire({
+                        title: 'Processing Approval',
+                        html: `Creating tenant for ${clientName}...`,
+                        allowOutsideClick: false,
+                        didOpen: () => {
+                            Swal.showLoading();
+                        }
+                    });
+
+                    // Make the AJAX call to create tenant
+                     // First AJAX call to create tenant
+                     $.ajax({
+                        type: 'POST',
+                        url: '/execute-tinker',
+                        data: {
+                            _token: $('meta[name="csrf-token"]').attr('content'),
+                            tenant_city: clientCity,
+                            domain: assignedDomain,
+                            user_name: clientName,
+                            user_email: clientEmail,
+                            subscription_plan: clientPlan
+                        },
+                        success: function(response) {
+                            if (response.success) {
+                                // If tenant creation successful, delete the potential client
+                                $.ajax({
+                                    type: 'DELETE',
+                                    url: `/admin/potential-clients/${clientId}`,
+                                    data: {
+                                        _token: $('meta[name="csrf-token"]').attr('content')
+                                    },
+                                    success: function(deleteResponse) {
+                                        approveSwal.close();
+                                        
+                                        if (deleteResponse.success) {
+                                            // Log all details to console
+                                            console.log('Tenant Created and Client Removed:', {
+                                                id: clientId,
+                                                name: clientName,
+                                                email: clientEmail,
+                                                city: clientCity,
+                                                plan: clientPlan,
+                                                domain: assignedDomain
+                                            });
+
+                                            Swal.fire({
+                                                icon: 'success',
+                                                title: 'Success',
+                                                text: 'Client approved and tenant created successfully!',
+                                                timer: 3000,
+                                                showConfirmButton: false
+                                            }).then(() => {
+                                                // Remove the row from the table
+                                                $row.fadeOut(300, function() {
+                                                    $(this).remove();
+                                                });
+                                            });
+                                        } else {
+                                            approveSwal.close();
+                                            Swal.fire({
+                                                icon: 'warning',
+                                                title: 'Partial Success',
+                                                html: `Tenant created but failed to remove potential client.<br>${deleteResponse.message}`,
+                                            });
+                                        }
+                                    },
+                                    error: function(xhr) {
+                                        approveSwal.close();
+                                        const errorMessage = xhr.responseJSON?.message || 'An error occurred while deleting the potential client';
+                                        Swal.fire({
+                                            icon: 'warning',
+                                            title: 'Partial Success',
+                                            html: `Tenant created but failed to remove potential client.<br>${errorMessage}`,
+                                        });
+                                    }
+                                });
+                            } else {
+                                approveSwal.close();
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Error',
+                                    text: response.message
+                                });
+                            }
+                        },
+                        error: function(xhr) {
+                            approveSwal.close();
+                            const errorMessage = xhr.responseJSON?.message || 'An error occurred while creating the tenant';
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Error',
+                                text: errorMessage
+                            });
+                        }
+                    });
+                }
+            });
+        }
+    });
+});
+        // Handle delete button click
+        $(document).on('click', '.delete-client-btn', function() {
+            const clientId = $(this).data('id');
+            const $row = $(this).closest('tr');
+
+            Swal.fire({
+                title: 'Are you sure?',
+                text: "You won't be able to revert this!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Yes, delete it!'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Show loading indicator
+                    const deleteSwal = Swal.fire({
+                        title: 'Deleting',
+                        html: 'Please wait...',
+                        allowOutsideClick: false,
+                        didOpen: () => {
+                            Swal.showLoading();
+                        }
+                    });
+
+                    // Send DELETE request
+                    $.ajax({
+                        url: `/admin/potential-clients/${clientId}`,
+                        type: 'DELETE',
+                        headers: {
+                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                        },
+                        success: function(response) {
+                            deleteSwal.close();
+                            if (response.success) {
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: 'Deleted!',
+                                    text: response.message || 'Client deleted successfully',
+                                    timer: 2000,
+                                    showConfirmButton: false
+                                }).then(() => {
+                                    $row.remove(); // Remove the row from table
+                                });
+                            } else {
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Error',
+                                    text: response.message || 'Failed to delete client'
+                                });
+                            }
+                        },
+                        error: function(xhr) {
+                            deleteSwal.close();
+                            const errorMessage = xhr.responseJSON?.message || 'An error occurred while deleting the client';
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Error',
+                                text: errorMessage
+                            });
+                        }
+                    });
+                }
             });
         });
     });

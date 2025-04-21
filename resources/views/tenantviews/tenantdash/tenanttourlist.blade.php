@@ -4,23 +4,29 @@
 <div class="container">
     <h3 class="my-4">Tenants</h3>
 
-    <!-- Alert Messages -->
+    <!-- Alert Messages will be handled by SweetAlert -->
     @if(session('success'))
-    <div class="alert alert-success alert-dismissible fade show auto-dismiss">
-        {{ session('success') }}
-        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-            <span aria-hidden="true">&times;</span>
-        </button>
-    </div>
+    <script>
+        Swal.fire({
+            icon: 'success',
+            title: 'Success',
+            text: '{{ session('
+            success ') }}',
+            timer: 3000,
+            showConfirmButton: false
+        });
+    </script>
     @endif
 
     @if(session('error'))
-    <div class="alert alert-danger alert-dismissible fade show">
-        {{ session('error') }}
-        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-            <span aria-hidden="true">&times;</span>
-        </button>
-    </div>
+    <script>
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: '{{ session('
+            error ') }}'
+        });
+    </script>
     @endif
 
     <!-- Add search form -->
@@ -38,7 +44,7 @@
             <thead>
                 <tr>
                     <th>Name</th>
-                    <th>Location</th>
+                    <th>Category</th>
                     <th>Description</th>
                     <th>Price</th>
                     <th>Image</th>
@@ -54,8 +60,8 @@
                     <td>{{ $touristSpot->entry_fee }}</td>
                     <td><img src="/storage/visitor/image/{{ $touristSpot->image }}" alt="Tourist Image" style="width: 100px; height: auto;"></td>
                     <td>
-                        <a href="#" class="btn btn-primary btn-sm edit-tourist-spot" data-id="{{ $touristSpot->id }}" data-toggle="modal" data-target="#editModal">Edit</a>
-                        <a href="#" class="btn btn-danger btn-sm delete-tourist-spot" data-id="{{ $touristSpot->id }}" data-toggle="modal" data-target="#deleteModal">Delete</a>
+                        <a href="#" class="btn btn-primary btn-sm edit-tourist-spot" data-id="{{ $touristSpot->id }}" data-toggle="modal" data-target="#editModal-{{ $touristSpot->id }}">Edit</a>
+                        <a href="#" class="btn btn-danger btn-sm delete-tourist-spot" data-id="{{ $touristSpot->id }}">Delete</a>
                     </td>
                 </tr>
                 @endforeach
@@ -81,16 +87,25 @@
                 </div>
                 <div class="modal-body">
                     <!-- Form for adding tourist spot -->
-                    <form method="POST" action="{{ route('touristspot.store') }}" enctype="multipart/form-data">
+                    <form id="addForm" method="POST" action="{{ route('touristspot.store') }}" enctype="multipart/form-data">
                         @csrf
                         <div class="form-group">
                             <label for="name">Name:</label>
                             <input type="text" class="form-control" id="name" name="name" autocomplete="name" required>
                         </div>
                         <div class="form-group">
-                            <label for="location">Location:</label>
-                            <input type="text" class="form-control" id="location" name="location" autocomplete="address-level2" required>
+                            <label for="location">Category:</label>
+                            <select class="form-control" id="location" name="location" required>
+                                <option value="">Select a category</option>
+                                <option value="Appetizers">Appetizers</option>
+                                <option value="Main Courses">Main Courses</option>
+                                <option value="Desserts">Desserts</option>
+                                <option value="Beverages">Beverages</option>
+                                <option value="Specials">Specials</option>
+                            </select>
                         </div>
+
+
                         <div class="form-group">
                             <label for="description">Description:</label>
                             <textarea class="form-control" id="description" name="description" rows="3" autocomplete="off"></textarea>
@@ -124,29 +139,26 @@
                 </div>
                 <div class="modal-body">
                     <!-- Form for editing tourist spot -->
-                    <form id="edit-form" method="POST" action="{{ route('touristspot.update', ['touristSpot' => $touristSpot->id]) }}">
+                    <form id="edit-form-{{ $touristSpot->id }}" method="POST" action="{{ route('touristspot.update', ['touristSpot' => $touristSpot->id]) }}">
                         @csrf
                         @method('PUT')
-                        <!-- Display Validation Errors -->
-                        @if ($errors->any())
-                        <div class="alert alert-danger">
-                            <ul>
-                                @foreach ($errors->all() as $error)
-                                <li>{{ $error }}</li>
-                                @endforeach
-                            </ul>
-                        </div>
-                        @endif
-
                         <div class="form-group">
                             <label for="name">Name:</label>
                             <input type="text" class="form-control" id="name" name="name" value="{{ $touristSpot->name }}" required>
                         </div>
 
                         <div class="form-group">
-                            <label for="location">Location:</label>
-                            <input type="text" class="form-control" id="location" name="location" value="{{ $touristSpot->location }}" required>
+                            <label for="location">Category:</label>
+                            <select class="form-control" id="location" name="location" required>
+                                <option value="">Select a category</option>
+                                <option value="Appetizers" {{ $touristSpot->category == 'Appetizers' ? 'selected' : '' }}>Appetizers</option>
+                                <option value="Main Courses" {{ $touristSpot->category == 'Main Courses' ? 'selected' : '' }}>Main Courses</option>
+                                <option value="Desserts" {{ $touristSpot->category == 'Desserts' ? 'selected' : '' }}>Desserts</option>
+                                <option value="Beverages" {{ $touristSpot->category == 'Beverages' ? 'selected' : '' }}>Beverages</option>
+                                <option value="Specials" {{ $touristSpot->category == 'Specials' ? 'selected' : '' }}>Specials</option>
+                            </select>
                         </div>
+
 
                         <div class="form-group">
                             <label for="description">Description:</label>
@@ -166,51 +178,95 @@
     </div>
     @endforeach
 
-    <!-- Ensure jQuery is included -->
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-    <!-- Ensure Bootstrap JavaScript is included -->
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
+    <!-- Add these right before the closing </body> tag -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
-    <script>
-        $(document).ready(function() {
-            setTimeout(function() {
-                $('.auto-dismiss').alert('close');
-            }, 3000);
-
-            // Rest of your existing JavaScript
-            $('.edit-tourist-spot').on('click', function() {
-                const id = $(this).data('id');
-                $.get('/touristspot/' + id, function(data) {
-                    $('#editModal-' + id + ' input[name="name"]').val(data.name);
-                    $('#editModal-' + id + ' input[name="location"]').val(data.location);
-                    $('#editModal-' + id + ' input[name="entry_fee"]').val(data.entry_fee);
-                    $('#editModal-' + id + ' #edit-form').attr('action', '/touristspot/' + id);
-                    $('#editModal-' + id).modal('show');
-                }).fail(function() {
-                    alert('Failed to load tourist spot data. Please try again.');
-                });
-            });
-
-            $.ajaxSetup({
-                headers: {
-                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content'),
-                    'X-Requested-With': 'XMLHttpRequest'
-                }
-            });
-
-            $('.delete-tourist-spot').on('click', function(e) {
-                e.preventDefault();
-
-                const id = $(this).data('id');
-                if (confirm('Are you sure you want to delete this tourist spot?')) {
-                    $.get('/touristspot/' + id + '/delete', function() {
-                        location.reload();
-                    }).fail(function() {
-                        alert('An error occurred while deleting the tourist spot.');
-                    });
-                }
-            });
+<script>
+$(document).ready(function() {
+    // Handle Add User form submission
+    $('#addUserForm').submit(function(e) {
+        e.preventDefault();
+        var form = $(this);
+        var submitBtn = form.find('button[type="submit"]');
+        
+        // Disable submit button to prevent multiple clicks
+        submitBtn.prop('disabled', true);
+        
+        // Show loading indicator
+        Swal.fire({
+            title: 'Creating User Account',
+            html: 'Please wait while we set up the new user...',
+            allowOutsideClick: false,
+            didOpen: () => {
+                Swal.showLoading();
+            }
         });
-    </script>
+
+        // Submit form via AJAX
+        $.ajax({
+            url: form.attr('action'),
+            type: 'POST',
+            data: form.serialize(),
+            success: function(response) {
+                // Close loading indicator
+                Swal.close();
+                
+                // Show success message with credentials info
+                Swal.fire({
+                    icon: 'success',
+                    title: 'User Created Successfully!',
+                    html: `
+                        <div class="text-start">
+                            <p><strong>Username:</strong> ${response.username}</p>
+                            <p><strong>Email:</strong> ${response.email}</p>
+                            <div class="alert alert-info mt-3">
+                                <strong>Credentials have been sent to the user's email.</strong>
+                            </div>
+                        </div>
+                    `,
+                    confirmButtonText: 'Return to Dashboard',
+                    confirmButtonColor: '#3085d6'
+                }).then((result) => {
+                    // Reset form and close modal
+                    form[0].reset();
+                    $('#addUserModal').modal('hide');
+                    
+                    // Redirect to dashboard
+                    window.location.href = response.redirect;
+                });
+            },
+            error: function(xhr) {
+                // Enable submit button
+                submitBtn.prop('disabled', false);
+                
+                // Close loading indicator
+                Swal.close();
+                
+                // Show error message
+                let errorMessage = 'An error occurred while creating the user';
+                if (xhr.responseJSON && xhr.responseJSON.message) {
+                    errorMessage = xhr.responseJSON.message;
+                } else if (xhr.responseJSON && xhr.responseJSON.errors) {
+                    errorMessage = Object.values(xhr.responseJSON.errors).join('<br>');
+                }
+                
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    html: errorMessage,
+                    confirmButtonText: 'Try Again'
+                });
+            }
+        });
+    });
+
+    // Reset form when modal is closed
+    $('#addUserModal').on('hidden.bs.modal', function() {
+        $('#addUserForm')[0].reset();
+        $('#addUserForm button[type="submit"]').prop('disabled', false);
+    });
+});
+</script>
 </div>
 @endsection

@@ -37,8 +37,8 @@ foreach (config('tenancy.central_domains') as $domain) {
             Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
             // Define a route that maps to the destroy method of the PotentialClientController
-            Route::delete('/potential-clients/{potentialClient}', [PotentialClientController::class, 'destroy'])->name('potentialClients.destroy');
             Route::get('/potential_clients', [PotentialClientController::class, 'index'])->name('potential_clients');
+            Route::delete('admin/potential-clients/{potentialClient}', [PotentialClientController::class, 'destroy'])->name('potential_clients.destroy');
             Route::post('/execute-tinker', [TinkerController::class, 'execute']);
             Route::get('/fetch-tenants', [TinkerController::class, 'fetchTenants']);
             Route::delete('/delete-tenant/{id}', [TinkerController::class, 'deleteTenant']);

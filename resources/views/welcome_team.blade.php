@@ -38,7 +38,7 @@
             <div class="col-lg-6">
                 <div class="team-member">
                     <img class="mx-auto rounded-circle" src="assets/img/team/iiiiii.jpg" alt="..." />
-                    <h4>iiiii</h4>
+                    <h4>Jhon Kert J. Talha</h4>
                     <p class="text-muted">Documentation</p>
                     <a class="btn btn-dark btn-social mx-2" href="https://www.facebook.com/" aria-label="Facebook Profile"><i class="fab fa-facebook-f"></i></a>
                     <a class="btn btn-dark btn-social mx-2" href="#!" aria-label="Instagram Profile"><i class="fab fa-instagram"></i></a>
