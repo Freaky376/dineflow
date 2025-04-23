@@ -80,6 +80,8 @@ Route::middleware([
 
         Route::get('/subscriptions', [SubscriptionController::class, 'index']);
 
+        Route::get('/orders/customer/{name}', [OrderController::class, 'getCustomerOrders'])->name('customer.orders');
+
 
 
         // Route::prefix('orders')->group(function () {

@@ -14,23 +14,43 @@ class OrderController extends Controller
     /**
      * Display a listing of the resource.
      */
-     // Display a listing of orders
-     public function index()
-     {
-         try {
-             // Initialize tenancy to get the current tenant
-             $tenant = tenancy()->tenant;
-             $tenantName = $tenant->tenant_city; 
-             // Pass the tenant name to the view
-             return view('tenantviews.tenantdash.tenanttrackorder', compact('tenantName'));
-         } catch (\Exception $e) {
-             // Log the error
-             Log::error('Error: ' . $e->getMessage());
- 
-             return redirect()->back()->with('error', 'Unable to load dashboard.');
-         }
-     }
-
+    public function index()
+    {
+        try {
+            // Initialize tenancy to get the current tenant
+            $tenant = tenancy()->tenant;
+            $tenantName = $tenant->tenant_city; 
+            
+            // Get unique customers by name only with their latest order
+            $customers = Order::with('touristspot')
+                ->select('name')
+                ->selectRaw('MAX(created_at) as latest_order_date')
+                ->groupBy('name')
+                ->orderBy('latest_order_date', 'desc')
+                ->get()
+                ->map(function ($group) {
+                    return Order::with('touristspot')
+                        ->where('name', $group->name)
+                        ->latest()
+                        ->first();
+                });
+                
+            return view('tenantviews.tenantdash.tenanttrackorder', compact('tenantName', 'customers'));
+        } catch (\Exception $e) {
+            Log::error('Error: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Unable to load dashboard.');
+        }
+    }
+    
+    public function getCustomerOrders($name)
+    {
+        $orders = Order::with('touristspot')
+            ->where('name', $name)
+            ->orderBy('created_at', 'desc')
+            ->get();
+    
+        return response()->json($orders);
+    }
     /**
      * Show the form for creating a new resource.
      */
