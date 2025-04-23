@@ -24,8 +24,7 @@ class DomainUpdatedMail extends Mailable
     tenancy()->end();
     
     $this->domainUrl = (app()->isLocal() ? 'http://' : 'https://') 
-                     . $domain 
-                     . (app()->isLocal() ? ':8000' : '');
+                     . $domain;
 }
 
     public function build()
