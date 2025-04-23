@@ -28,9 +28,26 @@
             </div>
         </div>
 
+        <div class="container">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <!-- Add this search form -->
+            <form id="tenant-search-form" class="form-inline">
+                <div class="input-group">
+                    <input type="text" class="form-control form-control-sm" 
+                        style="max-width: 200px;" id="tenant-search-input" 
+                        placeholder="Search tenants...">
+                    <div class="input-group-append">
+                        <button type="submit" class="btn btn-primary btn-sm" 
+                                style="font-size: 0.8rem; padding: 0.25rem 0.5rem;">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+
         <!-- Existing Tenants Table -->
         <div class="container">
-            <h3 class="my-4">Tenants</h3>
             <table id="tenants-table" class="table table-bordered table-striped">
                 <thead>
                     <tr>
@@ -111,13 +128,15 @@
             }
         });
 
+
+
         function execute() {
-    const tenantCity = document.getElementById('tenant_city').value;
-    const domainName = document.getElementById('domain').value;
-    const userName = document.getElementById('user_name').value;
-    const userEmail = document.getElementById('user_email').value;
-    const subscriptionPlan = document.getElementById('subscription_plan').value;
-    const csrfToken = $('meta[name="csrf-token"]').attr('content'); // Get CSRF token
+        const tenantCity = document.getElementById('tenant_city').value;
+        const domainName = document.getElementById('domain').value;
+        const userName = document.getElementById('user_name').value;
+        const userEmail = document.getElementById('user_email').value;
+        const subscriptionPlan = document.getElementById('subscription_plan').value;
+        const csrfToken = $('meta[name="csrf-token"]').attr('content'); // Get CSRF token
 
     // Basic validation
     if (!tenantCity || !domainName || !userName || !userEmail) {
@@ -182,63 +201,100 @@
     });
 }
 
-        $(document).ready(function() {
-            // Fetch tenants data when the page loads
-            fetchTenantsData();
+ $(document).ready(function() {
+    // Fetch tenants data when the page loads
+    fetchTenantsData();
 
-            function fetchTenantsData() {
-                $.ajax({
-                    url: '/fetch-tenants',
-                    type: 'GET',
-                    success: function(response) {
-                        if (response.success) {
-                            // Populate the table with the fetched data
-                            populateTable(response.data);
-                        } else {
-                            Swal.fire({
-                                icon: 'error',
-                                title: 'Error',
-                                text: 'Failed to fetch tenants: ' + response.message
-                            });
-                        }
-                    },
-                    error: function(xhr, status, error) {
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Error',
-                            text: 'Failed to fetch tenants: ' + error
-                        });
-                    }
-                });
+    // Search form handler
+    $('#tenant-search-form').on('submit', function(e) {
+        e.preventDefault();
+        const searchTerm = $('#tenant-search-input').val().toLowerCase();
+        filterTable(searchTerm);
+    });
+
+    // Real-time search (optional - uncomment if you want it)
+    // $('#tenant-search-input').on('keyup', function() {
+    //     const searchTerm = $(this).val().toLowerCase();
+    //     filterTable(searchTerm);
+    // });
+
+    function filterTable(searchTerm) {
+        $('#tenants-table tbody tr').each(function() {
+            const $row = $(this);
+            const tenantId = $row.find('td:eq(0)').text().toLowerCase();
+            const domainNames = $row.find('td:eq(1)').text().toLowerCase();
+            
+            if (tenantId.includes(searchTerm) || domainNames.includes(searchTerm)) {
+                $row.show();
+            } else {
+                $row.hide();
             }
+        });
+    }
 
-            function populateTable(data) {
-                var tableBody = $('#tenants-table tbody');
-                tableBody.empty(); // Clear existing rows
-                
-                data.forEach(function(tenant) {
-                    var row = $('<tr>');
-                    row.append($('<td>').text(tenant.id));
-                    
-                    var domainNames = '';
-                    tenant.domains.forEach(function(domain) {
-                        domainNames += domain.domain + '<br>';
+    function fetchTenantsData() {
+        $.ajax({
+            url: '/fetch-tenants',
+            type: 'GET',
+            success: function(response) {
+                if (response.success) {
+                    populateTable(response.data);
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'Failed to fetch tenants: ' + response.message
                     });
-                    row.append($('<td>').html(domainNames));
-                    
-                    // Add delete button with data-tenant-id attribute
-                    var deleteBtn = $('<button>')
-                        .text('Delete')
-                        .addClass('btn btn-danger btn-sm delete-tenant')
-                        .attr('data-tenant-id', tenant.id);
-                    row.append($('<td>').append(deleteBtn));
-
-                    tableBody.append(row);
+                }
+            },
+            error: function(xhr, status, error) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'Failed to fetch tenants: ' + error
                 });
             }
         });
+    }
 
-        $(document).on('click', '.delete-tenant', function() {
+    function populateTable(data) {
+        var tableBody = $('#tenants-table tbody');
+        tableBody.empty(); // Clear existing rows
+        
+        data.forEach(function(tenant) {
+            var row = $('<tr>');
+            row.append($('<td>').text(tenant.id));
+            
+            var domainNames = '';
+            tenant.domains.forEach(function(domain) {
+                domainNames += domain.domain + '<br>';
+            });
+            row.append($('<td>').html(domainNames));
+            
+            // Create action buttons container
+            var actionsTd = $('<td>');
+            
+            // Add edit button
+            var editBtn = $('<button>')
+                .text('Edit')
+                .addClass('btn btn-primary btn-sm edit-tenant mr-2')
+                .attr('data-tenant-id', tenant.id);
+            
+            // Add delete button
+            var deleteBtn = $('<button>')
+                .text('Delete')
+                .addClass('btn btn-danger btn-sm delete-tenant')
+                .attr('data-tenant-id', tenant.id);
+            
+            actionsTd.append(editBtn).append(deleteBtn);
+            row.append(actionsTd);
+
+            tableBody.append(row);
+        });
+    }
+});
+
+    $(document).on('click', '.delete-tenant', function() {
     var tenantId = $(this).data('tenant-id');
     var $button = $(this); // Store reference to the button
     
@@ -306,5 +362,137 @@
         }
     });
 });
+
+$(document).on('click', '.edit-tenant', function() {
+    var tenantId = encodeURIComponent($(this).data('tenant-id'));
+    
+    const editSwal = Swal.fire({
+        title: 'Loading',
+        html: 'Please wait...',
+        allowOutsideClick: false,
+        didOpen: () => {
+            Swal.showLoading();
+        }
+    });
+
+    $.ajax({
+        url: '/get-tenant/' + tenantId,  // Now properly encoded
+        type: 'GET',
+        success: function(response) {
+            editSwal.close();
+            if (response.success) {
+                showEditModal(response.tenant);
+            } else {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: response.message || 'Failed to load tenant data'
+                });
+            }
+        },
+        error: function(xhr) {
+            editSwal.close();
+            const errorMessage = xhr.responseJSON?.message || 'An error occurred while loading tenant data';
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: errorMessage
+            });
+        }
+    });
+});
+
+function showEditModal(tenant) {
+    Swal.fire({
+        title: 'Edit Tenant',
+        html: `
+            <form id="edit-tenant-form">
+                <div class="form-group">
+                    <label for="tenant-id">Tenant ID</label>
+                    <input type="text" class="form-control" id="tenant-id" value="${tenant.id}" readonly>
+                </div>
+                <div class="form-group">
+                    <label for="domain-names">Domain Names (one per line)</label>
+                    <textarea class="form-control" id="domain-names" rows="3">${
+                        tenant.domains.map(d => d.domain).join('\n')
+                    }</textarea>
+                </div>
+            </form>
+        `,
+        showCancelButton: true,
+        confirmButtonText: 'Save Changes',
+        preConfirm: () => {
+            const domainNames = $('#domain-names').val()
+                .split('\n')
+                .map(d => d.trim())
+                .filter(d => d !== '');
+            
+            if (domainNames.length === 0) {
+                Swal.showValidationMessage('At least one domain is required');
+                return false;
+            }
+            
+            return { domains: domainNames };
+        }
+    }).then((result) => {
+        if (result.isConfirmed) {
+            const formData = result.value;
+            
+            const updateSwal = Swal.fire({
+                title: 'Updating',
+                html: 'Please wait...',
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+
+            $.ajax({
+                url: '/update-tenant/' + encodeURIComponent(tenant.id),
+                type: 'POST',  // Changed to POST
+                data: {
+                    _method: 'PUT',  // Added method spoofing
+                    _token: $('meta[name="csrf-token"]').attr('content'),
+                    domains: formData.domains
+                },
+                success: function(response) {
+                    updateSwal.close();
+                    
+                    if (response.success) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Updated!',
+                            text: response.message,
+                            timer: 2000,
+                            showConfirmButton: false
+                        }).then(() => {
+                            // Update the specific row in the table
+                            const row = $(`.edit-tenant[data-tenant-id="${tenant.id}"]`).closest('tr');
+                            // Update domains cell
+                            row.find('td:nth-child(2)').html(
+                                response.tenant.domains.map(d => d.domain).join('<br>')
+                            );
+                        });
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: response.message
+                        });
+                    }
+                },
+                error: function(xhr) {
+                    updateSwal.close();
+                    const errorMessage = xhr.responseJSON?.message || 'An error occurred while updating the tenant';
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: errorMessage
+                    });
+                }
+            });
+        }
+    });
+}
         </script>
 @endsection

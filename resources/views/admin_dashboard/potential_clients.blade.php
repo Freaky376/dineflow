@@ -4,9 +4,31 @@
 <!-- Include SweetAlert for beautiful alerts -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
+
+
+
 <!-- Table for Potential Clients -->
 <div class="container mb-4">
     <h3 class="my-4">Potential Clients</h3>
+
+    <div class="container mb-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <!-- Search form -->
+        <form id="client-search-form" class="form-inline">
+            <div class="input-group">
+                <input type="text" class="form-control form-control-sm" 
+                       style="max-width: 200px;" id="client-search-input" 
+                       placeholder="Search clients...">
+                <div class="input-group-append">
+                    <button type="submit" class="btn btn-primary btn-sm" 
+                            style="font-size: 0.8rem; padding: 0.25rem 0.5rem;">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+    
     <table class="table table-bordered table-striped">
         <thead>
             <tr>
@@ -265,6 +287,43 @@ $(document).on('click', '.approve-client-btn', function() {
             });
         });
     });
+
+
+    $(document).ready(function() {
+    // Search form handler
+    $('#client-search-form').on('submit', function(e) {
+        e.preventDefault();
+        const searchTerm = $('#client-search-input').val().toLowerCase();
+        filterClientTable(searchTerm);
+    });
+
+    // Real-time search (optional)
+    $('#client-search-input').on('keyup', function() {
+        const searchTerm = $(this).val().toLowerCase();
+        filterClientTable(searchTerm);
+    });
+
+    function filterClientTable(searchTerm) {
+        $('table tbody tr').each(function() {
+            const $row = $(this);
+            const name = $row.find('td:eq(0)').text().toLowerCase();
+            const email = $row.find('td:eq(1)').text().toLowerCase();
+            const cafe = $row.find('td:eq(2)').text().toLowerCase();
+            const paymentMethod = $row.find('td:eq(3)').text().toLowerCase();
+            const planType = $row.find('td:eq(4)').text().toLowerCase();
+            
+            if (name.includes(searchTerm) || 
+                email.includes(searchTerm) || 
+                cafe.includes(searchTerm) || 
+                paymentMethod.includes(searchTerm) || 
+                planType.includes(searchTerm)) {
+                $row.show();
+            } else {
+                $row.hide();
+            }
+        });
+    }
+});
 </script>
 
 @endsection

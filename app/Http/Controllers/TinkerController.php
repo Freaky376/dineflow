@@ -12,6 +12,8 @@ use Illuminate\Support\Str;
 use Stancl\Tenancy\Facades\Tenancy;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\TenantCreated;
+use Stancl\Tenancy\Database\Models\Domain;
+use App\Mail\DomainUpdatedMail; 
 
 class TinkerController extends Controller
 {
@@ -136,4 +138,107 @@ class TinkerController extends Controller
             return response()->json(['success' => false, 'message' => $errorMessage]);
         }
     }
+
+    public function updateTenant(Request $request, $id)
+    {
+        try {
+            $decodedId = urldecode($id);
+            $tenant = Tenant::with('domains')
+                         ->findOrFail($decodedId);
+    
+            $validated = $request->validate([
+                'domains' => 'required|array',
+                'domains.*' => [
+                    'required',
+                    'string',
+                    'max:255',
+                    function ($attribute, $value, $fail) use ($tenant) {
+                        $exists = Domain::where('domain', $value)
+                                    ->where('tenant_id', '!=', $tenant->id)
+                                    ->exists();
+                        
+                        if ($exists) {
+                            $fail("The domain $value is already taken by another tenant.");
+                        }
+                    }
+                ]
+            ]);
+    
+            DB::transaction(function () use ($tenant, $validated) {
+                $currentDomains = $tenant->domains->pluck('domain')->toArray();
+                $newDomains = $validated['domains'];
+                
+            // Domains to add
+                $domainsToAdd = array_diff($newDomains, $currentDomains);
+                foreach ($domainsToAdd as $domain) {
+                    $tenant->domains()->create(['domain' => $domain]);
+                    
+                    // Initialize tenant context
+                    tenancy()->initialize($tenant);
+                    
+                    try {
+                        $recipient = \App\Models\User::oldest()->first(); // Changed line
+    
+                        if ($recipient) {
+                            Mail::to($recipient->email)
+                                ->send(new DomainUpdatedMail($domain, $tenant));
+                        } else {
+                            Mail::to(config('mail.fallback_admin'))
+                                ->send(new DomainUpdatedMail($domain, $tenant, true));
+                        }
+                    
+                    } finally {
+                        tenancy()->end();
+                    }
+                }
+                
+                // Domains to remove
+                $domainsToRemove = array_diff($currentDomains, $newDomains);
+                if (!empty($domainsToRemove)) {
+                    $tenant->domains()->whereIn('domain', $domainsToRemove)->delete();
+                }
+            });
+    
+            return response()->json([
+                'success' => true,
+                'message' => 'Tenant updated successfully',
+                'tenant' => $tenant->fresh('domains')
+            ]);
+            
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function getTenant($id)
+{
+    try {
+        // URL decode the ID first
+        $decodedId = urldecode($id);
+        
+        // Find tenant by ID with its domains
+        $tenant = Tenant::with('domains')
+                       ->where('id', $decodedId)
+                       ->firstOrFail();
+        
+        return response()->json([
+            'success' => true,
+            'tenant' => [
+                'id' => $tenant->id,
+                'domains' => $tenant->domains->map(function ($domain) {
+                    return ['domain' => $domain->domain];
+                })
+            ]
+        ]);
+    } catch (\Exception $e) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Tenant not found'
+        ], 404);
+    }
 }
+}
+ 

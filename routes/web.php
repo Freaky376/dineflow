@@ -42,6 +42,9 @@ foreach (config('tenancy.central_domains') as $domain) {
             Route::post('/execute-tinker', [TinkerController::class, 'execute']);
             Route::get('/fetch-tenants', [TinkerController::class, 'fetchTenants']);
             Route::delete('/delete-tenant/{id}', [TinkerController::class, 'deleteTenant']);
+            Route::get('/get-tenant/{id}', [TinkerController::class, 'getTenant'])->where('id', '.*');
+            // routes/web.php
+            Route::put('/update-tenant/{id}', [TinkerController::class, 'updateTenant'])->where('id', '.*');
         });
     });
 }

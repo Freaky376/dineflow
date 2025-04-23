@@ -20,4 +20,11 @@ class Tenant extends BaseTenant implements TenantWithDatabase
     {
         return $this->hasMany(Subscription::class);
     }
+
+    public function firstUser()
+{
+    return $this->users()->oldest()->first();
+    // or use 'created_at' if you have custom sorting:
+    // return $this->users()->orderBy('created_at')->first();
+}
 }
