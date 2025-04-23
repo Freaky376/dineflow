@@ -14,23 +14,34 @@ class OrderController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
         try {
-            // Initialize tenancy to get the current tenant
             $tenant = tenancy()->tenant;
             $tenantName = $tenant->tenant_city; 
             
-            // Get unique customers by name only with their latest order
-            $customers = Order::with('touristspot')
-                ->select('name')
+            $query = Order::with('touristspot')
+                ->select('name', 'phone')
                 ->selectRaw('MAX(created_at) as latest_order_date')
-                ->groupBy('name')
-                ->orderBy('latest_order_date', 'desc')
-                ->get()
+                ->groupBy('name', 'phone')
+                ->orderBy('latest_order_date', 'desc');
+    
+            if ($request->has('search')) {
+                $searchTerm = $request->input('search');
+                $query->where(function($q) use ($searchTerm) {
+                    $q->where('name', 'like', "%$searchTerm%")
+                      ->orWhere('phone', 'like', "%$searchTerm%")
+                      ->orWhereHas('touristspot', function($q) use ($searchTerm) {
+                          $q->where('name', 'like', "%$searchTerm%");
+                      });
+                });
+            }
+    
+            $customers = $query->get()
                 ->map(function ($group) {
                     return Order::with('touristspot')
                         ->where('name', $group->name)
+                        ->where('phone', $group->phone)
                         ->latest()
                         ->first();
                 });
@@ -51,6 +62,29 @@ class OrderController extends Controller
     
         return response()->json($orders);
     }
+
+    public function search(Request $request)
+{
+    $searchTerm = $request->input('search');
+    
+    $customers = Order::with('touristspot')
+        ->where(function($query) use ($searchTerm) {
+            $query->where('name', 'like', "%$searchTerm%")
+                  ->orWhere('phone', 'like', "%$searchTerm%")
+                  ->orWhere('order_type', 'like', "%$searchTerm%")
+                  ->orWhereHas('touristspot', function($q) use ($searchTerm) {
+                      $q->where('name', 'like', "%$searchTerm%");
+                  });
+        })
+        ->latest()
+        ->get()
+        ->unique('name'); // or whatever grouping you need
+
+    $tenant = tenancy()->tenant;
+    $tenantName = $tenant->tenant_city;
+
+    return view('tenantviews.tenantdash.tenanttrackorder', compact('tenantName', 'customers'));
+}
     /**
      * Show the form for creating a new resource.
      */

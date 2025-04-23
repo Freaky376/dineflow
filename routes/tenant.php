@@ -82,6 +82,8 @@ Route::middleware([
 
         Route::get('/orders/customer/{name}', [OrderController::class, 'getCustomerOrders'])->name('customer.orders');
 
+        Route::get('/orders/search', [OrderController::class, 'search'])->name('orders.search');
+
 
 
         // Route::prefix('orders')->group(function () {
