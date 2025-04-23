@@ -20,12 +20,7 @@
 
     <ul>
         <li>Tenant: {{ $tenant->id }}</li>
-        <li>Domain: <a href="{{ app()->isLocal() ? $domainUrl.':8000' : $domainUrl }}" 
-              class="domain-link" 
-              target="_blank" 
-              rel="noopener noreferrer">
-    {{ $domain }}{{ app()->isLocal() ? ':8000' : '' }}
-</a></li>
+        <li>Domain: <a href="{{ $domainUrl }}">{{ $domain }} </a> </li>
         <li>Date: {{ now()->toDateTimeString() }}</li>
     </ul>
 

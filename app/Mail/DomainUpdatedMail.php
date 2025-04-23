@@ -5,6 +5,7 @@ namespace App\Mail;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\Log;
 
 class DomainUpdatedMail extends Mailable
 {
@@ -12,24 +13,35 @@ class DomainUpdatedMail extends Mailable
 
     public $domain;
     public $tenant;
-    public $domainUrl;  // Add this new property
+    public $domainUrl;
+    public $isFallback;
 
-    public function __construct($domain, $tenant)
-{
-    $this->domain = $domain;
-    $this->tenant = $tenant;
-    
-    tenancy()->initialize($tenant);
-    $this->adminUser = \App\Models\User::oldest()->first(); // Changed line
-    tenancy()->end();
-    
-    $this->domainUrl = (app()->isLocal() ? 'http://' : 'https://') 
-                     . $domain;
-}
+    public function __construct($domain, $tenant, $isFallback = false)
+    {
+        $this->domain = $domain;
+        $this->tenant = $tenant;
+        $this->isFallback = $isFallback;
+        
+        // Build the complete URL
+        $this->domainUrl = (app()->isLocal() ? 'http://' . $domain. ':8000' : 'https://' . $domain);
+        
+        // No need to fetch users here since we're getting them before sending
+    }
 
     public function build()
     {
-        return $this->subject("New Domain Added: {$this->domain}")
-                    ->view('emails.domain_updated');
+        $subject = "New Domain Added: {$this->domain}";
+        
+        if ($this->isFallback) {
+            $subject = "[System Admin] " . $subject;
+        }
+
+        return $this->subject($subject)
+                   ->view('emails.domain_updated')
+                   ->with([
+                       'domainUrl' => $this->domainUrl,
+                       'tenant' => $this->tenant,
+                       'isFallback' => $this->isFallback
+                   ]);
     }
 }
