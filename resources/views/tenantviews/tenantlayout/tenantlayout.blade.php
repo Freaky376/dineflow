@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -14,28 +15,31 @@
       background-color: #121212;
       color: #ffffff;
     }
+
     .navbar-dark-mode {
       background-color: #333333;
     }
+
     .sidebar-dark-mode {
       background-color: #333333;
     }
   </style>
 </head>
+
 <body>
   <!-- Navbar -->
   <nav id="navbar" class="navbar navbar-expand-lg navbar-dark py-4">
     <div class="container-fluid">
       <!-- Logo -->
       <a class="navbar-brand" href="#">
-      <img id="navbarLogo" src="Tenant/resource/logo-main.png" alt="Logo" width="250" height="50" class="d-inline-block align-text-top">        {{ $tenantName }} Dashboard
+        <img id="navbarLogo" src="Tenant/resource/logo-main.png" alt="Logo" width="250" height="50" class="d-inline-block align-text-top"> {{ $tenantName }} Dashboard
       </a>
-  
+
       <!-- Toggler button -->
       <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
       </button>
-  
+
       <!-- Navbar right side -->
       <div class="collapse navbar-collapse justify-content-end" id="navbarSupportedContent">
         <button class="btn btn-primary me-2" data-bs-toggle="modal" data-bs-target="#addUserModal">Add User</button>
@@ -53,7 +57,7 @@
       </div>
     </div>
   </nav>
-  
+
   <!-- Content -->
   <div class="container-fluid">
     <div class="row">
@@ -61,9 +65,14 @@
       <aside class="col-md-2 sidebar">
         <div class="list-group">
           <a href="tenantdashboard" class="list-group-item list-group-item-action text-white">Dashboard</a>
+          @auth
+          @if(auth()->user()->role === 'admin')
           <a href="tenantbhlist" class="list-group-item list-group-item-action text-white">Manage Menu</a>
+          @endif
+          @endauth
+          <a href="tenanttrackorder" class="list-group-item list-group-item-action text-white">Track Order</a>
           <!-- Subscription details -->
-           <hr class="list-group-divider text-white"><span class="text-white fas fa-lightbulb">   Subscription</span></hr>
+          <hr class="list-group-divider text-white"><span class="text-white fas fa-lightbulb"> Subscription</span></hr>
           <div class="list-group-item text-white" id="subscriptionDetails">
             <!-- Subscription data will be populated dynamically -->
           </div>
@@ -97,6 +106,14 @@
             <div class="mb-3">
               <label for="email" class="form-label">Email</label>
               <input type="email" class="form-control" id="email" name="email" required>
+            </div>
+            <div class="mb-3">
+              <label for="role" class="form-label">Role</label>
+              <select name="role" class="form-control" required>
+                <option value="">Select Role</option>
+                <option value="admin" {{ old('role') == 'admin' ? 'selected' : '' }}>Admin</option>
+                <option value="staff" {{ old('role') == 'staff' ? 'selected' : '' }}>Staff</option>
+              </select>
             </div>
             <div class="modal-footer">
               <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
@@ -154,151 +171,152 @@
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
 
   <!-- Custom JavaScript to handle real-time customization -->
-<script>
-  document.addEventListener('DOMContentLoaded', function() {
-    const navbarColorInput = document.getElementById('navbarColor');
-    const sidebarColorInput = document.getElementById('sidebarColor');
-    const textColorInput = document.getElementById('textColor');
-    const fontSizeInput = document.getElementById('fontSize');
-    const darkModeToggle = document.getElementById('darkModeToggle');
-    const logoUploadInput = document.getElementById('logoUpload');
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const navbarColorInput = document.getElementById('navbarColor');
+      const sidebarColorInput = document.getElementById('sidebarColor');
+      const textColorInput = document.getElementById('textColor');
+      const fontSizeInput = document.getElementById('fontSize');
+      const darkModeToggle = document.getElementById('darkModeToggle');
+      const logoUploadInput = document.getElementById('logoUpload');
 
-    // Load saved customizations
-    const navbarColor = localStorage.getItem('navbarColor') || '#000000';
-    const sidebarColor = localStorage.getItem('sidebarColor') || '#000000';
-    const textColor = localStorage.getItem('textColor') || '#000000';
-    const fontSize = localStorage.getItem('fontSize') || '16';
-    const darkMode = localStorage.getItem('darkMode') === 'true';
-    const logoUrl = localStorage.getItem('logoUrl') || 'Tenant/resource/logo-main.png';
+      // Load saved customizations
+      const navbarColor = localStorage.getItem('navbarColor') || '#000000';
+      const sidebarColor = localStorage.getItem('sidebarColor') || '#000000';
+      const textColor = localStorage.getItem('textColor') || '#000000';
+      const fontSize = localStorage.getItem('fontSize') || '16';
+      const darkMode = localStorage.getItem('darkMode') === 'true';
+      const logoUrl = localStorage.getItem('logoUrl') || 'Tenant/resource/logo-main.png';
 
-    // Apply saved customizations
-    updateUI(navbarColor, sidebarColor, textColor, fontSize, darkMode, logoUrl);
+      // Apply saved customizations
+      updateUI(navbarColor, sidebarColor, textColor, fontSize, darkMode, logoUrl);
 
-    // Set input values to saved customizations
-    navbarColorInput.value = navbarColor;
-    sidebarColorInput.value = sidebarColor;
-    textColorInput.value = textColor;
-    fontSizeInput.value = fontSize;
-    darkModeToggle.checked = darkMode;
+      // Set input values to saved customizations
+      navbarColorInput.value = navbarColor;
+      sidebarColorInput.value = sidebarColor;
+      textColorInput.value = textColor;
+      fontSizeInput.value = fontSize;
+      darkModeToggle.checked = darkMode;
 
-    // Handle immediate changes in customization modal
-    navbarColorInput.addEventListener('input', function() {
-      updateUI(navbarColorInput.value, sidebarColorInput.value, textColorInput.value, fontSizeInput.value, darkModeToggle.checked, logoUrl);
-    });
+      // Handle immediate changes in customization modal
+      navbarColorInput.addEventListener('input', function() {
+        updateUI(navbarColorInput.value, sidebarColorInput.value, textColorInput.value, fontSizeInput.value, darkModeToggle.checked, logoUrl);
+      });
 
-    sidebarColorInput.addEventListener('input', function() {
-      updateUI(navbarColorInput.value, sidebarColorInput.value, textColorInput.value, fontSizeInput.value, darkModeToggle.checked, logoUrl);
-    });
+      sidebarColorInput.addEventListener('input', function() {
+        updateUI(navbarColorInput.value, sidebarColorInput.value, textColorInput.value, fontSizeInput.value, darkModeToggle.checked, logoUrl);
+      });
 
-    textColorInput.addEventListener('input', function() {
-      updateUI(navbarColorInput.value, sidebarColorInput.value, textColorInput.value, fontSizeInput.value, darkModeToggle.checked, logoUrl);
-    });
+      textColorInput.addEventListener('input', function() {
+        updateUI(navbarColorInput.value, sidebarColorInput.value, textColorInput.value, fontSizeInput.value, darkModeToggle.checked, logoUrl);
+      });
 
-    fontSizeInput.addEventListener('input', function() {
-      updateUI(navbarColorInput.value, sidebarColorInput.value, textColorInput.value, fontSizeInput.value, darkModeToggle.checked, logoUrl);
-    });
+      fontSizeInput.addEventListener('input', function() {
+        updateUI(navbarColorInput.value, sidebarColorInput.value, textColorInput.value, fontSizeInput.value, darkModeToggle.checked, logoUrl);
+      });
 
-    darkModeToggle.addEventListener('change', function() {
-      updateUI(navbarColorInput.value, sidebarColorInput.value, textColorInput.value, fontSizeInput.value, darkModeToggle.checked, logoUrl);
-    });
+      darkModeToggle.addEventListener('change', function() {
+        updateUI(navbarColorInput.value, sidebarColorInput.value, textColorInput.value, fontSizeInput.value, darkModeToggle.checked, logoUrl);
+      });
 
-    // Handle Save Changes button click
-    document.getElementById('saveChanges').addEventListener('click', function() {
-      const navbarColor = navbarColorInput.value;
-      const sidebarColor = sidebarColorInput.value;
-      const textColor = textColorInput.value;
-      const fontSize = fontSizeInput.value;
-      const darkMode = darkModeToggle.checked;
+      // Handle Save Changes button click
+      document.getElementById('saveChanges').addEventListener('click', function() {
+        const navbarColor = navbarColorInput.value;
+        const sidebarColor = sidebarColorInput.value;
+        const textColor = textColorInput.value;
+        const fontSize = fontSizeInput.value;
+        const darkMode = darkModeToggle.checked;
 
-      // Save customizations to local storage
-      localStorage.setItem('navbarColor', navbarColor);
-      localStorage.setItem('sidebarColor', sidebarColor);
-      localStorage.setItem('textColor', textColor);
-      localStorage.setItem('fontSize', fontSize);
-      localStorage.setItem('darkMode', darkMode);
+        // Save customizations to local storage
+        localStorage.setItem('navbarColor', navbarColor);
+        localStorage.setItem('sidebarColor', sidebarColor);
+        localStorage.setItem('textColor', textColor);
+        localStorage.setItem('fontSize', fontSize);
+        localStorage.setItem('darkMode', darkMode);
 
-      // Upload logo file and save URL to local storage
-      const logoFile = logoUploadInput.files[0];
-      if (logoFile) {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-          const logoUrl = e.target.result;
-          localStorage.setItem('logoUrl', logoUrl);
+        // Upload logo file and save URL to local storage
+        const logoFile = logoUploadInput.files[0];
+        if (logoFile) {
+          const reader = new FileReader();
+          reader.onload = function(e) {
+            const logoUrl = e.target.result;
+            localStorage.setItem('logoUrl', logoUrl);
+            updateUI(navbarColor, sidebarColor, textColor, fontSize, darkMode, logoUrl);
+          };
+          reader.readAsDataURL(logoFile);
+        } else {
           updateUI(navbarColor, sidebarColor, textColor, fontSize, darkMode, logoUrl);
-        };
-        reader.readAsDataURL(logoFile);
-      } else {
-        updateUI(navbarColor, sidebarColor, textColor, fontSize, darkMode, logoUrl);
-      }
+        }
 
-      // Close modal
-      const customizeModal = document.getElementById('customizeModal');
-      const modalInstance = bootstrap.Modal.getInstance(customizeModal);
-      modalInstance.hide();
+        // Close modal
+        const customizeModal = document.getElementById('customizeModal');
+        const modalInstance = bootstrap.Modal.getInstance(customizeModal);
+        modalInstance.hide();
+      });
+
+      function updateUI(navbarColor, sidebarColor, textColor, fontSize, darkMode, logoUrl) {
+        const navbar = document.getElementById('navbar');
+        const sidebar = document.querySelector('.sidebar');
+        const mainContent = document.querySelector('main');
+
+        navbar.style.backgroundColor = navbarColor;
+        sidebar.style.backgroundColor = sidebarColor;
+        sidebar.querySelectorAll('.list-group-item').forEach(item => item.style.color = textColor);
+        mainContent.style.color = textColor;
+        mainContent.style.fontSize = `${fontSize}px`;
+
+        if (darkMode) {
+          document.body.classList.add('dark-mode');
+          navbar.classList.add('navbar-dark-mode');
+          sidebar.classList.add('sidebar-dark-mode');
+        } else {
+          document.body.classList.remove('dark-mode');
+          navbar.classList.remove('navbar-dark-mode');
+          sidebar.classList.remove('sidebar-dark-mode');
+        }
+
+        const navbarLogo = document.getElementById('navbarLogo');
+        navbarLogo.src = logoUrl;
+      }
     });
-
-    function updateUI(navbarColor, sidebarColor, textColor, fontSize, darkMode, logoUrl) {
-      const navbar = document.getElementById('navbar');
-      const sidebar = document.querySelector('.sidebar');
-      const mainContent = document.querySelector('main');
-
-      navbar.style.backgroundColor = navbarColor;
-      sidebar.style.backgroundColor = sidebarColor;
-      sidebar.querySelectorAll('.list-group-item').forEach(item => item.style.color = textColor);
-      mainContent.style.color = textColor;
-      mainContent.style.fontSize = `${fontSize}px`;
-
-      if (darkMode) {
-        document.body.classList.add('dark-mode');
-        navbar.classList.add('navbar-dark-mode');
-        sidebar.classList.add('sidebar-dark-mode');
-      } else {
-        document.body.classList.remove('dark-mode');
-        navbar.classList.remove('navbar-dark-mode');
-        sidebar.classList.remove('sidebar-dark-mode');
-      }
-
-      const navbarLogo = document.getElementById('navbarLogo');
-      navbarLogo.src = logoUrl;
-    }
-  });
-</script>
+  </script>
 
 
   <!-- Populate subscription details -->
   <script>
-  document.addEventListener('DOMContentLoaded', function() {
-    fetch('/subscriptions')
+    document.addEventListener('DOMContentLoaded', function() {
+      fetch('/subscriptions')
         .then(response => response.json())
         .then(subscriptions => {
-            const subscriptionDetails = document.getElementById('subscriptionDetails');
-            subscriptionDetails.innerHTML = ''; // Clear existing items
+          const subscriptionDetails = document.getElementById('subscriptionDetails');
+          subscriptionDetails.innerHTML = ''; // Clear existing items
 
-            subscriptions.forEach(subscription => {
-                const subscriptionContainer = document.createElement('div');
-                subscriptionContainer.className = 'subscription-container';
+          subscriptions.forEach(subscription => {
+            const subscriptionContainer = document.createElement('div');
+            subscriptionContainer.className = 'subscription-container';
 
-                const planTypeDiv = document.createElement('div');
-                planTypeDiv.textContent = `Plan Type: ${subscription.plan_type}`;
-                planTypeDiv.className = 'subscription-plan-type';
+            const planTypeDiv = document.createElement('div');
+            planTypeDiv.textContent = `Plan Type: ${subscription.plan_type}`;
+            planTypeDiv.className = 'subscription-plan-type';
 
-                const descriptionDiv = document.createElement('div');
-                descriptionDiv.textContent = `Description: ${subscription.description}`;
-                descriptionDiv.className = 'subscription-description';
+            const descriptionDiv = document.createElement('div');
+            descriptionDiv.textContent = `Description: ${subscription.description}`;
+            descriptionDiv.className = 'subscription-description';
 
-                const priceDiv = document.createElement('div');
-                priceDiv.textContent = `Monthly Price: ${subscription.monthly_price}`;
-                priceDiv.className = 'subscription-price';
+            const priceDiv = document.createElement('div');
+            priceDiv.textContent = `Monthly Price: ${subscription.monthly_price}`;
+            priceDiv.className = 'subscription-price';
 
-                subscriptionContainer.appendChild(planTypeDiv);
-                subscriptionContainer.appendChild(descriptionDiv);
-                subscriptionContainer.appendChild(priceDiv);
+            subscriptionContainer.appendChild(planTypeDiv);
+            subscriptionContainer.appendChild(descriptionDiv);
+            subscriptionContainer.appendChild(priceDiv);
 
-                subscriptionDetails.appendChild(subscriptionContainer);
-            });
+            subscriptionDetails.appendChild(subscriptionContainer);
+          });
         })
         .catch(error => console.error('Error fetching subscriptions:', error));
-});
+    });
   </script>
 </body>
+
 </html>

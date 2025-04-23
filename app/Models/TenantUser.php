@@ -6,7 +6,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 
 class TenantUser extends Authenticatable
 {
-    protected $table = 'users'; // Ensure this model uses the 'users' table
+    protected $table = 'users'; 
 
     protected $fillable = [
         'name',

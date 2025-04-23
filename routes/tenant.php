@@ -12,6 +12,10 @@ use App\Http\Controllers\TenantControllers\DashboardController;
 use App\Http\Controllers\TenantControllers\HomeController;
 use App\Http\Controllers\TenantControllers\ProfileController;
 use App\Http\Controllers\TenantControllers\SubscriptionController;
+use App\Http\Controllers\TenantControllers\OrderController;
+use App\Http\Controllers\TenantControllers\CustomerController;
+
+
 
 
 /*
@@ -33,9 +37,13 @@ Route::middleware([
 ])->group(function () {
     // Route for the login page
     Route::get('/', [HomeController::class, 'showDashboard'])->name('tenanthome');
+    Route::post('/orders', [OrderController::class, 'store'])->name('orders.store');
+
 
     // Route for handling the login form submission
-    Route::get('/tenantlogin', function () { return view('tenantviews.tenantlogin'); })->name('tenantlogin');
+    Route::get('/tenantlogin', function () {
+        return view('tenantviews.tenantlogin');
+    })->name('tenantlogin');
     Route::post('/tenantlogin', [TenantLoginController::class, 'tenantlogin'])->name('tenantlogin_submit');
     Route::get('/logout', [TenantLoginController::class, 'tenantlogout'])->name('tenantlogout');
 
@@ -52,6 +60,8 @@ Route::middleware([
 
         // Route for the tenant tour list
         Route::get('/tenantbhlist', [TouristSpotController::class, 'index'])->name('tenantlist');
+        Route::get('/tenanttrackorder', [OrderController::class, 'index'])->name('tenanttrackorder');
+
 
         // Route for storing a new tourist spot
         Route::post('/touristspot', [TouristSpotController::class, 'store'])->name('touristspot.store');
@@ -72,5 +82,14 @@ Route::middleware([
 
 
 
+        // Route::prefix('orders')->group(function () {
+        //     Route::get('/', [OrderController::class, 'index'])->name('tenant.orders.index');
+        //     Route::get('/create', [OrderController::class, 'create'])->name('tenant.orders.create');
+        //     Route::post('/', [OrderController::class, 'store'])->name('tenant.orders.store');
+        //     Route::get('/{order}', [OrderController::class, 'show'])->name('tenant.orders.show');
+        //     Route::get('/{order}/edit', [OrderController::class, 'edit'])->name('tenant.orders.edit');
+        //     Route::put('/{order}', [OrderController::class, 'update'])->name('tenant.orders.update');
+        //     Route::delete('/{order}', [OrderController::class, 'destroy'])->name('tenant.orders.destroy');
+        // });
     });
 });

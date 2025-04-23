@@ -12,6 +12,7 @@
     <ul>
         <li><strong>Username:</strong> {{ $username }}</li>
         <li><strong>Email:</strong> {{ $email }}</li>
+        <li><strong>Role:</strong> {{ $role }}</li>
         <li><strong>Password:</strong> {{ $password }}</li>
     </ul>
     <p>Please keep this information secure. You can now log in using the provided credentials.</p>
