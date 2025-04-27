@@ -13,14 +13,10 @@ class TenantCreated extends Mailable
     public $userName;
     public $userEmail;
     public $randomPassword;
-    public $domain;
+    public $domain;        // Just the domain name (e.g., "donmaca.com.dineflow.localhost")
+    public $domainUrl;     // Full URL with protocol and port if needed
     public $subscriptionPlan;
 
-    /**
-     * Create a new message instance.
-     *
-     * @return void
-     */
     public function __construct($userName, $userEmail, $randomPassword, $domain, $subscriptionPlan)
     {
         $this->userName = $userName;
@@ -28,13 +24,11 @@ class TenantCreated extends Mailable
         $this->randomPassword = $randomPassword;
         $this->domain = $domain;
         $this->subscriptionPlan = $subscriptionPlan;
+        
+        $this->domainUrl = (app()->isLocal() ? 'http://' . $domain : 'https://' . $domain);
+
     }
 
-    /**
-     * Build the message.
-     *
-     * @return $this
-     */
     public function build()
     {
         return $this->view('emails.tenant_created')
@@ -43,6 +37,7 @@ class TenantCreated extends Mailable
                         'userEmail' => $this->userEmail,
                         'randomPassword' => $this->randomPassword,
                         'domain' => $this->domain,
+                        'domainUrl' => $this->domainUrl, // Pass the full URL to the view
                         'subscriptionPlan' => $this->subscriptionPlan,
                     ]);
     }

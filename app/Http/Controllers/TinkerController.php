@@ -168,7 +168,8 @@ class TinkerController extends Controller
                 $currentDomains = $tenant->domains->pluck('domain')->toArray();
                 $newDomains = $validated['domains'];
                 
-            // Domains to add
+
+                // Domains to add
                 $domainsToAdd = array_diff($newDomains, $currentDomains);
                 foreach ($domainsToAdd as $domain) {
                     $tenant->domains()->create(['domain' => $domain]);
@@ -177,20 +178,29 @@ class TinkerController extends Controller
                     tenancy()->initialize($tenant);
                     
                     try {
-                        $recipient = \App\Models\User::oldest()->first(); // Changed line
-    
-                        if ($recipient) {
-                            Mail::to($recipient->email)
+                        // Get ALL users for this tenant
+                        $users = \App\Models\User::all();
+                        
+                        if ($users->isNotEmpty()) {
+                            // Send to all users
+                            Mail::to($users->pluck('email')->toArray())
                                 ->send(new DomainUpdatedMail($domain, $tenant));
                         } else {
-                            Mail::to(config('mail.fallback_admin'))
-                                ->send(new DomainUpdatedMail($domain, $tenant, true));
+                            // Fallback to system admin if no users exist
+                            Log::warning("No users found for tenant {$tenant->id} when adding domain {$domain}");
+                            
+                            if (config('mail.fallback_admin')) {
+                                Mail::to(config('mail.fallback_admin'))
+                                    ->send(new DomainUpdatedMail($domain, $tenant, true));
+                            }
                         }
-                    
+                    } catch (\Exception $e) {
+                        Log::error("Failed to send domain update email for {$domain}: " . $e->getMessage());
                     } finally {
                         tenancy()->end();
                     }
                 }
+
                 
                 // Domains to remove
                 $domainsToRemove = array_diff($currentDomains, $newDomains);
