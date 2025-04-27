@@ -18,13 +18,29 @@ class TenantLoginController extends Controller
         $credentials = $request->only('email', 'password');
 
         if (Auth::attempt($credentials)) {
-            // Authentication passed...
-            return redirect()->route('tenantdashboard');
+            $request->session()->regenerate();
+            
+            return redirect()->intended(route('tenantdashboard'))
+                ->with('success', 'Login successful!');
         }
 
-        // Authentication failed...
-        return redirect()->back()->withInput()->withErrors(['email' => 'Invalid credentials']);
+        return back()
+            ->withInput()
+            ->withErrors([
+                'email' => 'The provided credentials do not match our records.',
+            ]);
     }
+
+
+    // Add this method to your TenantLoginController
+public function viewUsers()
+{
+    $tenant = tenancy()->tenant;
+    $tenantName = $tenant->tenant_city; 
+    
+    $users = User::all(); // Or any specific query you need
+    return view('tenantviews.tenantdash.tenantuser', compact('tenantName','users'));
+}
 
     public function tenantlogout()
     {
@@ -58,4 +74,30 @@ class TenantLoginController extends Controller
 
         return redirect()->route('tenantdashboard')->with('success', 'User added successfully. Credentials sent to the provided email.');
     }
+
+    public function updateUser(Request $request, $id)
+    {
+        $request->validate([
+            'username' => 'required|string|max:255',
+            'email' => "required|string|email|max:255|unique:users,email,$id",
+            'role' => 'nullable|string|in:admin,staff',
+        ]);
+
+        $user = User::findOrFail($id);
+        $user->name = $request->username;
+        $user->email = $request->email;
+        $user->role = $request->role;
+        $user->save();
+
+        return response()->json(['message' => 'User updated successfully.']);
+    }
+
+    public function deleteUser($id)
+    {
+        $user = User::findOrFail($id);
+        $user->delete();
+
+        return response()->json(['message' => 'User deleted successfully.']);
+    }
+
 }

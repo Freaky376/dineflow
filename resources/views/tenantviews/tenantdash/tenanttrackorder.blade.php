@@ -1,16 +1,6 @@
 @extends('tenantviews.tenantlayout.tenantlayout')
 
 @section('content')
-<style>
-.order-img {
-    width: 100px;
-    height: auto;
-    object-fit: cover;
-}
-.modal-lg {
-    max-width: 850px;
-}
-</style>
 <div class="col-md-12">
     <div class="card shadow-sm">
         <div class="card-header bg-primary text-white">
@@ -19,19 +9,23 @@
             </div>
         </div>
         <div class="card-body">
-
-            <!-- 🔍 Simple Search Form -->
-            <form method="GET" action="{{ route('orders.search') }}" class="form-inline mb-3">
-                <div class="input-group input-group-sm">
-                    <input type="text" class="form-control" name="search" placeholder="Search orders..." value="{{ request('search') }}">
-                    <button class="btn btn-light" type="submit"><i class="fas fa-search"></i></button>
+            <!-- Search Form -->
+            <div class="mb-4">
+                <div class="input-group" style="max-width: 300px;">
+                    <input type="text" class="form-control form-control-sm" id="searchInput" 
+                           placeholder="Search customer/order..." autocomplete="off">
+                    <div class="input-group-append">
+                        <span class="input-group-text bg-primary text-white">
+                            <i class="fas fa-search"></i>
+                        </span>
+                    </div>
                 </div>
-            </form>
+            </div>
 
             <h5 class="card-title">Welcome, {{ $tenantName }}!</h5>
             <p class="card-text text-muted">Track and manage all customer orders</p>
 
-            <!-- 🧾 Orders Table -->
+            <!-- Orders Table -->
             <div class="table-responsive">
                 <table class="table table-hover">
                     <thead class="thead-light">
@@ -46,27 +40,29 @@
                             <th>Actions</th>
                         </tr>
                     </thead>
-                    <tbody>
+                    <tbody id="ordersTableBody">
                         @forelse($customers as $customer)
-                        <tr>
+                        <tr class="order-row" 
+                            data-customer="{{ strtolower($customer->name) }}" 
+                            data-item="{{ strtolower($customer->touristspot->name ?? '') }}">
                             <td>
-                                <img src="/storage/visitor/image/{{ $customer->touristspot->image ?? 'default.jpg' }}" 
-                                     alt="Image" class="order-img">
+                                <img src="/storage/visitor/image/{{ $customer->touristspot->image ?? 'default.jpg' }}"
+                                     alt="Item Image" class="img-thumbnail order-img">
                             </td>
-                            <td>{{ $customer->touristspot->name ?? 'N/A' }}</td>
-                            <td>{{ $customer->name }}</td>
-                            <td>{{ $customer->phone ?? 'N/A' }}</td>
-                            <td>{{ $customer->quantity }}</td>
-                            <td>{{ ucfirst($customer->order_type) }}</td>
-                            <td>₱{{ number_format($customer->total_price, 2) }}</td>
-                            <td>
+                            <td class="align-middle">{{ $customer->touristspot->name ?? 'N/A' }}</td>
+                            <td class="align-middle">{{ $customer->name }}</td>
+                            <td class="align-middle">{{ $customer->phone ?? 'N/A' }}</td>
+                            <td class="align-middle">{{ $customer->quantity }}</td>
+                            <td class="align-middle">{{ ucfirst($customer->order_type) }}</td>
+                            <td class="align-middle">₱{{ number_format($customer->total_price, 2) }}</td>
+                            <td class="align-middle">
                                 <button class="btn btn-sm btn-outline-primary view-orders" data-name="{{ $customer->name }}">
                                     <i class="fas fa-history"></i> History
                                 </button>
                             </td>
                         </tr>
                         @empty
-                        <tr><td colspan="8" class="text-center text-muted py-4">No orders found</td></tr>
+                        <tr><td colspan="8" class="text-center py-4 text-muted">No orders found</td></tr>
                         @endforelse
                     </tbody>
                 </table>
@@ -75,7 +71,7 @@
     </div>
 </div>
 
-<!-- 📦 Order History Modal -->
+<!-- Order History Modal -->
 <div class="modal fade" id="orderHistoryModal" tabindex="-1" role="dialog">
     <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content">
@@ -83,20 +79,23 @@
                 <h5 class="modal-title">
                     <i class="fas fa-history"></i> Order History for <span id="customerName"></span>
                 </h5>
-                <button type="button" class="close text-white" data-dismiss="modal"><span>&times;</span></button>
+                <button type="button" class="close text-white" data-dismiss="modal">
+                    <span aria-hidden="true">&times;</span>
+                </button>
             </div>
             <div class="modal-body p-0">
-                <div class="input-group input-group-sm p-3">
-                    <input type="text" id="modalSearch" class="form-control" placeholder="Search history...">
-                    <div class="input-group-append">
-                        <button class="btn btn-light" id="searchHistoryBtn"><i class="fas fa-search"></i></button>
-                    </div>
-                </div>
                 <div class="table-responsive">
                     <table class="table table-hover mb-0">
                         <thead class="thead-light">
                             <tr>
-                                <th>Date</th><th>Item</th><th>Image</th><th>Qty</th><th>Type</th><th>Total</th>
+                                <th>Date</th>
+                                <th>Item</th>
+                                <th>Image</th>
+                                <th>Qty</th>
+                                <th>Type</th>
+                                <th>Total</th>
+                                <th>Status</th>
+                                <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody id="modalHistoryBody"></tbody>
@@ -104,7 +103,9 @@
                 </div>
             </div>
             <div class="modal-footer">
-                <button class="btn btn-secondary" data-dismiss="modal"><i class="fas fa-times"></i> Close</button>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                    <i class="fas fa-times"></i> Close
+                </button>
             </div>
         </div>
     </div>
@@ -112,76 +113,230 @@
 
 <!-- Scripts -->
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/js/all.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script>
-$(function() {
+$(function () {
     let currentCustomerData = [];
+    let searchTimer;
 
-    // Open modal
-    $(document).on('click', '.view-orders', function() {
+    // Client-side search functionality
+    $('#searchInput').on('input', function() {
+        clearTimeout(searchTimer);
+        
+        searchTimer = setTimeout(function() {
+            const searchValue = $('#searchInput').val().toLowerCase().trim();
+            
+            if (searchValue === '') {
+                $('.order-row').show();
+                return;
+            }
+            
+            $('.order-row').each(function() {
+                const customerName = $(this).data('customer');
+                const itemName = $(this).data('item');
+                
+                if (customerName.includes(searchValue) || itemName.includes(searchValue)) {
+                    $(this).show();
+                } else {
+                    $(this).hide();
+                }
+            });
+            
+            // Show "No results" message if all rows are hidden
+            if ($('.order-row:visible').length === 0) {
+                $('#ordersTableBody').append('<tr id="no-results-row"><td colspan="8" class="text-center py-4 text-muted">No matching orders found</td></tr>');
+            } else {
+                $('#no-results-row').remove();
+            }
+        }, 300);
+    });
+
+    // Show Modal & Load Orders
+    $(document).on('click', '.view-orders', function () {
         const name = $(this).data('name');
         $('#customerName').text(name);
-        $('#modalSearch').val('');
-        $('#modalHistoryBody').html(`<tr><td colspan="6" class="text-center">Loading...</td></tr>`);
+        $('#modalHistoryBody').html('<tr><td colspan="8" class="text-center">Loading...</td></tr>');
         $('#orderHistoryModal').modal('show');
 
-        $.get(`/orders/customer/${encodeURIComponent(name)}`, function(data) {
+        $.get(`/orders/customer/${encodeURIComponent(name)}`, function (data) {
             currentCustomerData = data;
             renderModalTable(data);
         }).fail(() => {
-            $('#modalHistoryBody').html(`<tr><td colspan="6" class="text-center text-danger">Error loading history</td></tr>`);
+            $('#modalHistoryBody').html('<tr><td colspan="8" class="text-danger text-center">Failed to load history</td></tr>');
         });
     });
 
-    // Render data
+    // Status update in modal
+    $(document).on('click', '.update-status', function(e) {
+        e.preventDefault();
+        const newStatus = $(this).data('status');
+        const orderId = $(this).data('id');
+        const orderRow = $(this).closest('tr');
+        
+        Swal.fire({
+            title: 'Update Status',
+            text: `Are you sure you want to mark this order as ${newStatus}?`,
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonText: 'Yes, update it!',
+            cancelButtonText: 'Cancel'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $.ajax({
+                    url: `/orders/${orderId}/status`,
+                    method: 'PATCH',
+                    data: {
+                        _token: "{{ csrf_token() }}",
+                        status: newStatus
+                    },
+                    success: function(response) {
+                        orderRow.find('.badge')
+                            .removeClass('badge-warning badge-info badge-success badge-danger')
+                            .addClass('badge-' + getStatusBadgeClass(newStatus))
+                            .text(newStatus.charAt(0).toUpperCase() + newStatus.slice(1));
+                        
+                        Swal.fire(
+                            'Updated!',
+                            'Order status has been updated.',
+                            'success'
+                        );
+                    },
+                    error: function(xhr) {
+                        Swal.fire(
+                            'Error!',
+                            xhr.responseJSON?.message || 'Failed to update status.',
+                            'error'
+                        );
+                    }
+                });
+            }
+        });
+    });
+
+    // Render Orders in modal
     function renderModalTable(data) {
         const body = $('#modalHistoryBody');
         body.empty();
 
         if (!data.length) {
-            body.append(`<tr><td colspan="6" class="text-center text-muted">No order history found</td></tr>`);
+            body.append('<tr><td colspan="8" class="text-center text-muted">No order history found</td></tr>');
             return;
         }
 
         data.forEach(order => {
             const date = new Date(order.created_at).toLocaleString('en-US');
-            const img = order.touristspot?.image || 'default.jpg';
             const item = order.touristspot?.name || 'N/A';
+            const image = order.touristspot?.image || 'default.jpg';
             body.append(`
                 <tr>
                     <td>${date}</td>
                     <td>${item}</td>
-                    <td><img src="/storage/visitor/image/${img}" class="order-img"></td>
+                    <td><img src="/storage/visitor/image/${image}" class="img-thumbnail" style="width: 60px;"></td>
                     <td>${order.quantity}</td>
                     <td>${order.order_type}</td>
                     <td>₱${parseFloat(order.total_price).toFixed(2)}</td>
+                    <td>
+                        <span class="badge badge-${getStatusBadgeClass(order.status)}">
+                            ${order.status.charAt(0).toUpperCase() + order.status.slice(1)}
+                        </span>
+                    </td>
+                    <td>
+                        <div class="btn-group">
+                            <button type="button" class="btn btn-sm btn-outline-secondary dropdown-toggle" 
+                                    data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                <i class="fas fa-cog"></i>
+                            </button>
+                            <div class="dropdown-menu dropdown-menu-right">
+                                <a class="dropdown-item update-status" href="#" data-id="${order.id}" data-status="pending">Mark as Pending</a>
+                                <a class="dropdown-item update-status" href="#" data-id="${order.id}" data-status="completed">Mark as Completed</a>
+                                <a class="dropdown-item update-status" href="#" data-id="${order.id}" data-status="cancelled">Mark as Cancelled</a>
+                            </div>
+                        </div>
+                    </td>
                 </tr>
             `);
         });
     }
 
-    // Filter
-    $('#searchHistoryBtn, #modalSearch').on('keyup click', function(e) {
-        if (e.type === 'keyup' && e.key !== 'Enter') return;
-        const term = $('#modalSearch').val().toLowerCase();
-        if (!term) return renderModalTable(currentCustomerData);
-
-        const filtered = currentCustomerData.filter(o =>
-            o.touristspot?.name?.toLowerCase().includes(term) ||
-            o.order_type.toLowerCase().includes(term) ||
-            o.quantity.toString().includes(term) ||
-            o.total_price.toString().includes(term) ||
-            new Date(o.created_at).toLocaleString().toLowerCase().includes(term)
-        );
-        renderModalTable(filtered);
-    });
-
-    // Force close modal
-    $('#orderHistoryModal .close, #orderHistoryModal .btn-secondary').on('click', function() {
+    // Modal Close Triggers
+    $('#orderHistoryModal .close, #orderHistoryModal .btn-secondary').on('click', function () {
         $('#orderHistoryModal').modal('hide');
     });
+
+    // Helper function to get badge class based on status
+    function getStatusBadgeClass(status) {
+        switch(status) {
+            case 'pending': return 'warning';
+            case 'confirmed': return 'info';
+            case 'completed': return 'success';
+            case 'cancelled': return 'danger';
+            default: return 'secondary';
+        }
+    }
 });
 </script>
+
+<style>
+    .order-img {
+        width: 80px;
+        height: 80px;
+        object-fit: cover;
+        border-radius: 6px;
+    }
+
+    .modal-lg {
+        max-width: 850px;
+    }
+
+    .card-body {
+        background-color: #f8f9fa;
+    }
+
+    .table td {
+        vertical-align: middle;
+    }
+
+    .btn-outline-primary:hover {
+        background-color: #4e73df;
+        color: white;
+    }
+    
+    .badge-warning {
+        background-color: #f6c23e;
+    }
+    
+    .badge-info {
+        background-color: #36b9cc;
+    }
+    
+    .badge-success {
+        background-color: #1cc88a;
+    }
+    
+    .badge-danger {
+        background-color: #e74a3b;
+    }
+    
+    .dropdown-menu {
+        min-width: 10rem;
+    }
+    
+    .dropdown-item {
+        padding: 0.25rem 1.5rem;
+    }
+</style>
 @endsection
+
+@php
+function getStatusBadgeClass($status) {
+    switch($status) {
+        case 'pending': return 'warning';
+        case 'completed': return 'success';
+        case 'cancelled': return 'danger';
+        default: return 'secondary';
+    }
+}
+@endphp

@@ -8,7 +8,6 @@ use App\Models\Tenant\TouristSpot;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 
-
 class OrderController extends Controller
 {
     /**
@@ -31,6 +30,7 @@ class OrderController extends Controller
                 $query->where(function($q) use ($searchTerm) {
                     $q->where('name', 'like', "%$searchTerm%")
                       ->orWhere('phone', 'like', "%$searchTerm%")
+                      ->orWhere('status', 'like', "%$searchTerm%")
                       ->orWhereHas('touristspot', function($q) use ($searchTerm) {
                           $q->where('name', 'like', "%$searchTerm%");
                       });
@@ -64,27 +64,28 @@ class OrderController extends Controller
     }
 
     public function search(Request $request)
-{
-    $searchTerm = $request->input('search');
-    
-    $customers = Order::with('touristspot')
-        ->where(function($query) use ($searchTerm) {
-            $query->where('name', 'like', "%$searchTerm%")
-                  ->orWhere('phone', 'like', "%$searchTerm%")
-                  ->orWhere('order_type', 'like', "%$searchTerm%")
-                  ->orWhereHas('touristspot', function($q) use ($searchTerm) {
-                      $q->where('name', 'like', "%$searchTerm%");
-                  });
-        })
-        ->latest()
-        ->get()
-        ->unique('name'); // or whatever grouping you need
+    {
+        $searchTerm = $request->input('search');
+        
+        $customers = Order::with('touristspot')
+            ->where(function($query) use ($searchTerm) {
+                $query->where('name', 'like', "%$searchTerm%")
+                      ->orWhere('phone', 'like', "%$searchTerm%")
+                      ->orWhere('order_type', 'like', "%$searchTerm%")
+                      ->orWhere('status', 'like', "%$searchTerm%")
+                      ->orWhereHas('touristspot', function($q) use ($searchTerm) {
+                          $q->where('name', 'like', "%$searchTerm%");
+                      });
+            })
+            ->latest()
+            ->get()
+            ->unique('name'); 
+        $tenant = tenancy()->tenant;
+        $tenantName = $tenant->tenant_city;
 
-    $tenant = tenancy()->tenant;
-    $tenantName = $tenant->tenant_city;
+        return view('tenantviews.tenantdash.tenanttrackorder', compact('tenantName', 'customers'));
+    }
 
-    return view('tenantviews.tenantdash.tenanttrackorder', compact('tenantName', 'customers'));
-}
     /**
      * Show the form for creating a new resource.
      */
@@ -106,7 +107,11 @@ class OrderController extends Controller
             'quantity' => 'required|integer|min:1',
             'order_type' => 'required|string|max:255',
             'total_price' => 'required|numeric|min:0',
+            'status' => 'sometimes|string|in:pending,confirmed,completed,cancelled' // Added status validation
         ]);
+
+        // Set default status if not provided
+        $validated['status'] = $validated['status'] ?? 'pending';
 
         Order::create($validated);
 
@@ -142,6 +147,7 @@ class OrderController extends Controller
             'quantity' => 'required|integer|min:1',
             'order_type' => 'required|string|max:255',
             'total_price' => 'required|numeric|min:0',
+            'status' => 'required|string|in:pending,confirmed,completed,cancelled' // Added status validation
         ]);
 
         $order->update($validated);
@@ -157,4 +163,23 @@ class OrderController extends Controller
         $order->delete();
         return redirect()->route('orders.index')->with('success', 'Order deleted successfully.');
     }
+
+    /**
+     * Update order status
+     */
+    public function updateStatus(Request $request, $orderId)
+    {
+        $order = Order::findOrFail($orderId);
+    
+        $validated = $request->validate([
+            'status' => 'required|string|in:pending,confirmed,completed,cancelled'
+        ]);
+    
+        $order->update(['status' => $validated['status']]);
+
+        Log::info('Updating order status for ID: ' . $order->id);
+    
+        return response()->json(['success' => true, 'message' => 'Status updated successfully']);
+    }
+    
 }

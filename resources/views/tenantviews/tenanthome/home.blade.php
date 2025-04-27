@@ -198,6 +198,52 @@
     </div>
 </div>
 
+<!-- Cafe Location Map -->
+<section class="page-section bg-light" id="location">
+    <div class="container">
+        <div class="text-center mb-4">
+            <h2 class="section-heading text-uppercase">Find Us</h2>
+            <h3 class="section-subheading text-muted">Visit our {{ $tenantName }}</h3>
+        </div>
+        <div class="card shadow-lg border-0">
+            <div class="card-body p-0">
+                <div id="map" style="height: 450px; border-radius: 0 0 10px 10px;"></div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Leaflet Map Styles and Scripts -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const map = L.map('map').setView([14.5995, 120.9842], 14); // Default to Manila
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '&copy; OpenStreetMap contributors'
+        }).addTo(map);
+
+        L.marker([14.5995, 120.9842])
+            .addTo(map)
+            .bindPopup("<b>DineFlow Café</b><br>Manila, PH")
+            .openPopup();
+
+        // Geolocation if allowed
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(pos => {
+                const lat = pos.coords.latitude;
+                const lon = pos.coords.longitude;
+                map.setView([lat, lon], 15);
+                L.marker([lat, lon]).addTo(map).bindPopup("Here!").openPopup();
+            });
+        }
+    });
+</script>
+
+
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
 <!-- Add SweetAlert JS -->

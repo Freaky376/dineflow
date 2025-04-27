@@ -42,11 +42,9 @@
 
       <!-- Navbar right side -->
       <div class="collapse navbar-collapse justify-content-end" id="navbarSupportedContent">
-        @auth
-        @if(auth()->user()->role === 'admin')
-        <button class="btn btn-primary me-2" data-bs-toggle="modal" data-bs-target="#addUserModal">Add User</button>
-        @endif
-        @endauth
+       
+        <!-- <button class="btn btn-primary me-2" data-bs-toggle="modal" data-bs-target="#addUserModal">Add User</button> -->
+       
         <!-- Dropdown menu for profile -->
         <div class="dropdown">
           <a class="btn btn-secondary dropdown-toggle" href="#" role="button" id="dropdownMenuLink" data-bs-toggle="dropdown" aria-expanded="false">
@@ -69,13 +67,23 @@
       <aside class="col-md-2 sidebar">
         <div class="list-group">
           <a href="tenantdashboard" class="list-group-item list-group-item-action text-white">Dashboard</a>
+
           @auth
-          @if(auth()->user()->role === 'admin')
-          <a href="tenantbhlist" class="list-group-item list-group-item-action text-white">Manage Menu</a>
-          @endif
-          @endauth
-          <a href="tenanttrackorder" class="list-group-item list-group-item-action text-white">Track Order</a>
-          <!-- Subscription details -->
+        <!-- Manage Menu - only for admin -->
+        @if(auth()->user()->role === 'admin')
+        <a href="tenantbhlist" class="list-group-item list-group-item-action text-white">Manage Menu</a>
+        @endif
+
+        <!-- Track Order - visible to all authenticated users -->
+        <a href="tenanttrackorder" class="list-group-item list-group-item-action text-white">Track Order</a>
+
+        <!-- View Users - only for admin -->
+        @if(auth()->user()->role === 'admin')
+        <a href="tenantusers" class="list-group-item list-group-item-action text-white">View Users</a>
+        @endif
+    @endauth
+    
+    <!-- Subscription details -->
           <hr class="list-group-divider text-white"><span class="text-white fas fa-lightbulb"> Subscription</span></hr>
           <div class="list-group-item text-white" id="subscriptionDetails">
             <!-- Subscription data will be populated dynamically -->
@@ -92,121 +100,121 @@
     </div>
   </div>
 
- <!-- Add User Modal -->
-<div class="modal fade" id="addUserModal" tabindex="-1" aria-labelledby="addUserModalLabel" aria-hidden="true">
+  <!-- Add User Modal
+  <div class="modal fade" id="addUserModal" tabindex="-1" aria-labelledby="addUserModalLabel" aria-hidden="true">
     <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header bg-primary text-white">
-                <h5 class="modal-title" id="addUserModalLabel">Add User</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <form id="addUserForm">
-                    @csrf
-                    <div class="mb-3">
-                        <label for="username" class="form-label">Username</label>
-                        <input type="text" class="form-control" id="username" name="username" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="email" class="form-label">Email</label>
-                        <input type="email" class="form-control" id="email" name="email" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="role" class="form-label">Role</label>
-                        <select name="role" class="form-control" required>
-                            <option value="">Select Role</option>
-                            <option value="admin">Admin</option>
-                            <option value="staff">Staff</option>
-                        </select>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                        <button type="submit" class="btn btn-primary">Add User</button>
-                    </div>
-                </form>
-            </div>
+      <div class="modal-content">
+        <div class="modal-header bg-primary text-white">
+          <h5 class="modal-title" id="addUserModalLabel">Add User</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
+        <div class="modal-body">
+          <form id="addUserForm">
+            @csrf
+            <div class="mb-3">
+              <label for="username" class="form-label">Username</label>
+              <input type="text" class="form-control" id="username" name="username" required>
+            </div>
+            <div class="mb-3">
+              <label for="email" class="form-label">Email</label>
+              <input type="email" class="form-control" id="email" name="email" required>
+            </div>
+            <div class="mb-3">
+              <label for="role" class="form-label">Role</label>
+              <select name="role" class="form-control" required>
+                <option value="">Select Role</option>
+                <option value="admin">Admin</option>
+                <option value="staff">Staff</option>
+              </select>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+              <button type="submit" class="btn btn-primary">Add User</button>
+            </div>
+          </form>
+        </div>
+      </div>
     </div>
-</div>
+  </div> -->
 
-<!-- Include SweetAlert JS -->
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <!-- Include SweetAlert JS -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-<script>
-$(document).ready(function() {
-    // Handle form submission
-    $('#addUserForm').on('submit', function(e) {
+  <script>
+    $(document).ready(function() {
+      // Handle form submission
+      $('#addUserForm').on('submit', function(e) {
         e.preventDefault();
-        
+
         // Show loading alert
         Swal.fire({
-            title: 'Processing',
-            html: 'Adding new user...',
-            allowOutsideClick: false,
-            didOpen: () => {
-                Swal.showLoading();
-            }
+          title: 'Processing',
+          html: 'Adding new user...',
+          allowOutsideClick: false,
+          didOpen: () => {
+            Swal.showLoading();
+          }
         });
 
         // Get form data
         const formData = $(this).serialize();
-        
+
         // AJAX request
         $.ajax({
-            url: "{{ route('tenant.register') }}",
-            type: "POST",
-            data: formData,
-            success: function(response) {
-                // Close the modal
-                $('#addUserModal').modal('hide');
-                
-                // Show success message
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Success!',
-                    text: response.message || 'User added successfully',
-                    timer: 3000,
-                    showConfirmButton: false
-                }).then(() => {
-                    // Reset form
-                    $('#addUserForm')[0].reset();
-                    
-                    // Reload page or update user list as needed
-                    window.location.reload();
-                });
-            },
-            error: function(xhr) {
-                let errorMessage = 'An error occurred while adding the user';
-                
-                // Try to get server error message
-                if (xhr.responseJSON && xhr.responseJSON.message) {
-                    errorMessage = xhr.responseJSON.message;
-                } else if (xhr.responseJSON && xhr.responseJSON.errors) {
-                    // Handle validation errors
-                    errorMessage = Object.values(xhr.responseJSON.errors).join('<br>');
-                }
-                
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Error',
-                    html: errorMessage
-                });
+          url: "{{ route('tenant.register') }}",
+          type: "POST",
+          data: formData,
+          success: function(response) {
+            // Close the modal
+            $('#addUserModal').modal('hide');
+
+            // Show success message
+            Swal.fire({
+              icon: 'success',
+              title: 'Success!',
+              text: response.message || 'User added successfully',
+              timer: 3000,
+              showConfirmButton: false
+            }).then(() => {
+              // Reset form
+              $('#addUserForm')[0].reset();
+
+              // Reload page or update user list as needed
+              window.location.reload();
+            });
+          },
+          error: function(xhr) {
+            let errorMessage = 'An error occurred while adding the user';
+
+            // Try to get server error message
+            if (xhr.responseJSON && xhr.responseJSON.message) {
+              errorMessage = xhr.responseJSON.message;
+            } else if (xhr.responseJSON && xhr.responseJSON.errors) {
+              // Handle validation errors
+              errorMessage = Object.values(xhr.responseJSON.errors).join('<br>');
             }
+
+            Swal.fire({
+              icon: 'error',
+              title: 'Error',
+              html: errorMessage
+            });
+          }
         });
-    });
+      });
 
-    // Reset form when modal is closed
-    $('#addUserModal').on('hidden.bs.modal', function () {
+      // Reset form when modal is closed
+      $('#addUserModal').on('hidden.bs.modal', function() {
         $('#addUserForm')[0].reset();
+      });
     });
-});
-</script>
+  </script>
 
-<style>
+  <style>
     .btn-close-white {
-        filter: invert(1) grayscale(100%) brightness(200%);
+      filter: invert(1) grayscale(100%) brightness(200%);
     }
-</style>
+  </style>
 
   <!-- Customize Modal -->
   <div class="modal fade" id="customizeModal" tabindex="-1" aria-labelledby="customizeModalLabel" aria-hidden="true">

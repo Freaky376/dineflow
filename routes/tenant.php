@@ -84,6 +84,16 @@ Route::middleware([
 
         Route::get('/orders/search', [OrderController::class, 'search'])->name('orders.search');
 
+        Route::get('/tenantusers', [TenantLoginController::class, 'viewUsers'])->name('tenantusers');
+       
+        Route::put('/tenant/user/{id}', [TenantLoginController::class, 'updateUser'])->name('tenant.user.update');
+
+        Route::delete('/tenant/user/{id}', [TenantLoginController::class, 'deleteUser'])->name('tenant.user.delete');
+
+        Route::patch('/orders/{orderId}/status', [OrderController::class, 'updateStatus'])->name('orders.updateStatus');
+
+
+
 
 
         // Route::prefix('orders')->group(function () {
