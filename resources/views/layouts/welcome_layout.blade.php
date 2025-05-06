@@ -66,7 +66,7 @@
                     /* Tailwind's gray-500 equivalent */
                 }
             </style>
-            <h4 class="version-text">version 1.0.0</h4>
+            <h4 class="version-text">version 1.0.1</h4>
         </div>
     </header>
 

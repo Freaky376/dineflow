@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+
+## [v1.0.1] - 2025-05-06
+
+### 🔧 Changed
+- Displayed current version number on landing page for transparency and version tracking
+
+---
+
 ## [v1.0.0] - 2025-05-06
 
 ### 🎉 Added
